@@ -1,0 +1,1 @@
+ALTER TABLE "forms" ADD COLUMN "slug" varchar(255) NOT NULL;
