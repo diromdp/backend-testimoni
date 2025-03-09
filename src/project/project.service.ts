@@ -40,6 +40,11 @@ export class ProjectService {
         })
         .returning();
 
+      // Update feature usage for projects
+      await this.currentSubscriptionService.updateFeatureUsage(userId, {
+        project: currentSubscription.featureUsage.project - 1
+      });
+
       return {
         message: 'Proyek berhasil dibuat',
         project: newProject[0],

@@ -1,6 +1,7 @@
 import { pgTable, serial, text, varchar, boolean, timestamp, jsonb, integer } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { projects } from '../project/schema';
+import { testimonials } from '../testimoni/schema';
 
 export const forms = pgTable('forms', {
   id: serial('id').primaryKey(),
@@ -15,6 +16,11 @@ export const forms = pgTable('forms', {
   backgroundColor: varchar('background_color', { length: 50 }).default(''),
   title: varchar('title', { length: 255 }).default(''),
   description: text('description').default(''),
+  titleText: varchar('title_text', { length: 255 }).default(''),
+  descriptionText: text('description_text').default(''),
+  titleVideo: varchar('title_video', { length: 255 }).default(''),
+  videoThankYou: varchar('video_thank_you', { length: 255 }).default(''),
+  descriptionVideo: varchar('description_video', { length: 255 }).default(''),
   
   // Collection fields as JSON
   collectionEmail: jsonb('collection_email').$type<{
@@ -60,9 +66,10 @@ export const forms = pgTable('forms', {
 });
 
 // Add relations if needed
-export const formRelations = relations(forms, ({ one }) => ({
+export const formRelations = relations(forms, ({ one, many }) => ({
   project: one(projects, {
     fields: [forms.projectId],
     references: [projects.id],
   }),
+  testimonials: many(testimonials),
 }));

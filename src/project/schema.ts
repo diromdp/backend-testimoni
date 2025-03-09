@@ -3,6 +3,8 @@ import { relations } from 'drizzle-orm';
 import { users } from '../user/schema';
 import { currentProject } from '../current-project/schema';
 import { forms } from '../form/schema';
+import { testimonials } from '../testimoni/schema';
+import { showcase } from '../showcase/schema';
 
 export const projects = pgTable('projects', {
   id: serial('id').primaryKey(),
@@ -26,4 +28,6 @@ export const projectRelations = relations(projects, ({ one, many }) => ({
     references: [currentProject.projectId],
   }),
   forms: many(forms),
+  testimonials: many(testimonials),
+  showcase: many(showcase),
 }));

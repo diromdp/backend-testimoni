@@ -141,6 +141,62 @@
       "when": 1740369351386,
       "tag": "0019_nervous_jack_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1740482358207,
+      "tag": "0020_open_greymalkin",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1740623756939,
+      "tag": "0021_huge_ultron",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1740670710277,
+      "tag": "0022_light_drax",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1740673729295,
+      "tag": "0023_kind_timeslip",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1740715142919,
+      "tag": "0024_sharp_robbie_robertson",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1741457394420,
+      "tag": "0025_old_centennial",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1741457490725,
+      "tag": "0026_young_exodus",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1741465735739,
+      "tag": "0027_romantic_molten_man",
+      "breakpoints": true
     }
   ]
 }

@@ -13,6 +13,10 @@ import { ProjectModule } from './project/project.module';
 import { CurrentProjectModule } from './current-project/current-project.module';
 import { CurrentSubscriptionModule } from './current-subscription/current-subscription.module';
 import { FormModule } from './form/form.module';
+import { AssetModule } from './asset/asset.module';
+import { TagModule } from './tag/tag.module';
+import { TestimoniModule } from './testimoni/testimoni.module';
+import { ShowcaseModule } from './showcase/showcase.module';
 
 @Module({
   imports: [
@@ -34,6 +38,10 @@ import { FormModule } from './form/form.module';
     CurrentProjectModule,
     CurrentSubscriptionModule,
     FormModule,
+    AssetModule,
+    TagModule,
+    TestimoniModule,
+    ShowcaseModule,
   ],
   providers: [
     {

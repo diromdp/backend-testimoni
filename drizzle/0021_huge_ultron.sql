@@ -1,0 +1,1 @@
+ALTER TABLE "forms" ADD COLUMN "video_thank_you" varchar(255) DEFAULT '';

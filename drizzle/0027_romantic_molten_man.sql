@@ -1,0 +1,1 @@
+ALTER TABLE "showcase" ADD COLUMN "status" varchar(255) DEFAULT 'not-active';

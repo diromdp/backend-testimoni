@@ -8,6 +8,7 @@ import { PaginateQuery, Paginated } from 'nestjs-paginate';
 import { sql } from 'drizzle-orm';
 import { CurrentSubscriptionService } from '../current-subscription/current-subscription.service';
 import { CurrentProjectService } from '../current-project/current-project.service';
+import { AssetService } from '../asset/asset.service';
 
 type Form = typeof schema.forms.$inferSelect;
 
@@ -15,9 +16,10 @@ type Form = typeof schema.forms.$inferSelect;
 export class FormService {
    constructor(
       @Inject(DATABASE_CONNECTION)
-      private readonly db: NodePgDatabase<typeof schema & typeof projectSchema >,
+      private readonly db: NodePgDatabase<typeof schema & typeof projectSchema>,
       private readonly currentSubscriptionService: CurrentSubscriptionService,
       private readonly currentProjectService: CurrentProjectService,
+      private readonly assetService: AssetService,
    ) { }
 
    async create(userId: number, projectId: number) {
@@ -111,12 +113,12 @@ export class FormService {
    //    }
    // }
 
-   async updateBySlug(slug: string, updateFormDto: any) {
+   async updateById(id: string, updateFormDto: any) {
       try {
          const existingForm = await this.db
             .select()
             .from(schema.forms)
-            .where(eq(schema.forms.slug, slug))
+            .where(eq(schema.forms.id, +id))
             .limit(1)
             .then(rows => rows[0]);
 
@@ -130,7 +132,7 @@ export class FormService {
                ...updateFormDto,
                updatedAt: new Date(),
             })
-            .where(eq(schema.forms.slug, slug))
+            .where(eq(schema.forms.id, +id))
             .returning();
 
          return {
@@ -138,7 +140,7 @@ export class FormService {
             form: updatedForm[0],
          };
       } catch (error) {
-         throw new Error(`Gagal memperbarui form dengan slug ${slug}: ${error.message}`);
+         throw new Error(`Gagal memperbarui form dengan id ${id}: ${error.message}`);
       }
    }
 
@@ -150,7 +152,6 @@ export class FormService {
       const offset = (page - 1) * limit;
       const currentProject = await this.currentProjectService.findCurrentProjectByUserId(userId.toString());
 
-      console.log(currentProject);
       if (!currentProject) {
          throw new BadRequestException('Proyek tidak ditemukan');
       }
@@ -251,28 +252,137 @@ export class FormService {
       }
    }
 
-   async remove(userId: number, projectId: number, formId: number) {
+   async findBySlug(slug: string) {
       try {
-         const existingForm = await this.findOne(userId, projectId, formId);
+         // Verify project belongs to use
+
+         const form = await this.db
+            .select()
+            .from(schema.forms)
+            .where(
+               and(
+                  eq(schema.forms.slug, slug),
+               )
+            )
+            .limit(1)
+            .then(rows => rows[0]);
+
+         if (!form) {
+            throw new BadRequestException('Form tidak ditemukan');
+         }
+
+         return form;
+      } catch (error) {
+         throw new Error(`Gagal menemukan form dengan slug ${slug}: ${error.message}`);
+      }
+   }
+
+   async remove(userId: number, formId: number) {
+      try {
+         // Verify the form exists
+         const existingForm = await this.db
+            .select()
+            .from(schema.forms)
+            .where(eq(schema.forms.id, formId))
+            .limit(1)
+            .then(rows => rows[0]);
 
          if (!existingForm) {
             throw new BadRequestException('Form tidak ditemukan');
          }
 
-         await this.db
-            .delete(schema.forms)
+         // Verify the form belongs to a project owned by the user
+         const project = await this.db
+            .select()
+            .from(projectSchema.projects)
             .where(
                and(
-                  eq(schema.forms.id, formId),
-                  eq(schema.forms.projectId, projectId)
+                  eq(projectSchema.projects.id, existingForm.projectId),
+                  eq(projectSchema.projects.userId, userId)
                )
-            );
+            )
+            .limit(1)
+            .then(rows => rows[0]);
+
+         if (!project) {
+            throw new BadRequestException('Anda tidak memiliki akses ke form ini');
+         }
+
+         // Delete the form and update feature usage in a transaction
+         await this.db.transaction(async (tx) => {
+            // Delete the form logo image if it exists
+            if (existingForm.logo) {
+               try {
+                  await this.assetService.deleteImage(existingForm.logo);
+               } catch (imageError) {
+                  console.error(`Failed to delete form logo image: ${imageError.message}`);
+                  // Continue with form deletion even if image deletion fails
+               }
+            }
+
+            // Delete the form
+            await tx
+               .delete(schema.forms)
+               .where(eq(schema.forms.id, formId));
+
+            // Check subscription feature usage and increment the form count
+            const currentSubscription = await this.currentSubscriptionService.getCurrentSubscription(userId);
+            await this.currentSubscriptionService.updateFeatureUsage(userId, {
+               form: currentSubscription.featureUsage.form + 1
+            });
+         });
 
          return {
             message: 'Form berhasil dihapus',
          };
       } catch (error) {
          throw new Error(`Gagal menghapus form ${formId}: ${error.message}`);
+      }
+   }
+   async pause(userId: number, formId: number, pauseFormDto: { stopNewSubmissions: boolean }) {
+      try {
+         // Verify the form exists
+         const existingForm = await this.db
+            .select()
+            .from(schema.forms)
+            .where(eq(schema.forms.id, formId))
+            .limit(1)
+            .then(rows => rows[0]);
+
+         if (!existingForm) {
+            throw new BadRequestException('Form tidak ditemukan');   
+         }
+
+         // Verify the form belongs to a project owned by the user
+         const project = await this.db
+            .select()
+            .from(projectSchema.projects) 
+            .where(
+               and(
+                  eq(projectSchema.projects.id, existingForm.projectId),
+                  eq(projectSchema.projects.userId, userId)
+               )
+            )
+            .limit(1)
+            .then(rows => rows[0]);
+
+         if (!project) {
+            throw new BadRequestException('Anda tidak memiliki akses ke form ini');
+         }        
+
+         // Update the form status to paused
+         await this.db
+            .update(schema.forms)
+            .set({
+               stopNewSubmissions: pauseFormDto.stopNewSubmissions,
+            })
+            .where(eq(schema.forms.id, formId));
+
+         return {
+            message: 'Form berhasil dijeda',
+         };
+      } catch (error) {
+         throw new Error(`Gagal menjeda form ${formId}: ${error.message}`);
       }
    }
 }

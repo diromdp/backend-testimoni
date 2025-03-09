@@ -24,7 +24,6 @@ export class FormController {
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Form created successfully' })
   async create(@UserId() userId: number, @Request() req) {
     const projectId = req.body.projectId;
-    console.log(projectId);
     try {
       const result = await this.formService.create(userId, projectId);
       return { status: 200, ...result };
@@ -56,27 +55,27 @@ export class FormController {
     }
   }
 
-  @Get(':id')
+  @Get(':slug')
   @HttpCode(HttpStatus.OK)
   @ApiResponse({ status: HttpStatus.OK, description: 'Form retrieved successfully' })
-  async findOne(@UserId() userId: number, @Param('id') id: string, @Request() req) {
+  async findOne(@UserId() userId: number, @Param('slug') slug: string, @Request() req) {
     try {
-      const result = await this.formService.findOne(userId, req.project_id, +id);
+      const result = await this.formService.findBySlug(slug);
       return result;
     } catch (error) {
       throw new Error(error.message);
     }
   }
 
-  @Put(':slug')
+  @Put(':id')
   @HttpCode(HttpStatus.OK)
   @ApiResponse({ status: HttpStatus.OK, description: 'Form updated successfully' })
   async updateBySlug(
-    @Param('slug') slug: string,
+    @Param('id') id: string,
     @Body() updateFormDto: UpdateFormDto
   ) {
     try {
-      const result = await this.formService.updateBySlug(slug, updateFormDto);
+      const result = await this.formService.updateById(id, updateFormDto);
       return { status: 200, ...result };
     } catch (error) {
       return { status: 500, message: error.message };
@@ -86,7 +85,23 @@ export class FormController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiResponse({ status: HttpStatus.OK, description: 'Form deleted successfully' })
-  remove(@UserId() userId: number, @Param('id') id: string, @Request() req) {
-    return this.formService.remove(userId, req.project_id, +id);
+  remove(@UserId() userId: number, @Param('id') id: string) {
+    return this.formService.remove(userId, +id);
   }
+  @Put(':id/pause')
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({ status: HttpStatus.OK, description: 'Form paused successfully' })
+  async pause(
+    @UserId() userId: number, 
+    @Param('id') id: string, 
+    @Body() pauseFormDto: { stopNewSubmissions: boolean }
+  ) {
+    try {
+      const result = await this.formService.pause(userId, +id, pauseFormDto);
+      return { status: 200, ...result };
+    } catch (error) {
+      return { status: 500, message: error.message };
+    }
+  }
+  
 }
