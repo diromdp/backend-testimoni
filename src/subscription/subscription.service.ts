@@ -151,6 +151,7 @@ export class SubscriptionService {
           price: schema.subscriptions.price,
           planType: schema.subscriptions.planType,
           position: schema.subscriptions.position,
+          type: schema.subscriptions.type,
         })
         .from(schema.subscriptions)
 

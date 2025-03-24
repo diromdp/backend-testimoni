@@ -197,6 +197,34 @@
       "when": 1741465735739,
       "tag": "0027_romantic_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1742012795788,
+      "tag": "0028_yielding_karnak",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1742012846243,
+      "tag": "0029_special_sugar_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1742355493077,
+      "tag": "0030_cynical_firebird",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1742355985560,
+      "tag": "0031_pretty_solo",
+      "breakpoints": true
     }
   ]
 }

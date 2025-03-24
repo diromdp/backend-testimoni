@@ -10,7 +10,7 @@ export const orderSubscriptions = pgTable('order_subscriptions', {
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date').notNull(),
   nextBillingDate: timestamp('next_billing_date').notNull(),
-  status: varchar('status', { length: 20 }).notNull().default('ACTIVE'),
+  status: varchar('status', { length: 20 }).notNull().default('Pending'),
   isAutoRenew: boolean('is_auto_renew').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -27,3 +27,4 @@ export const orderSubscriptionRelations = relations(orderSubscriptions, ({ one, 
   }),
   currentSubscription: many(currentSubscriptions),
 })); 
+

@@ -51,7 +51,12 @@ export class CurrentSubscriptionService {
 				userId,
 				subscriptionId: freeSubscription.id,
 				orderSubscriptionId: orderSubscription.id,
+				type: 'free',
 				featureUsage: freeSubscription.features,
+				featureLimit: freeSubscription.features,
+				startDate,
+				endDate,
+				nextBillingDate: endDate,
 				isActive: true,
 			})
 			.returning();

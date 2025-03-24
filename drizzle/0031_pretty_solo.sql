@@ -1,0 +1,1 @@
+ALTER TABLE "current_subscriptions" ADD COLUMN "type" varchar(50) NOT NULL;

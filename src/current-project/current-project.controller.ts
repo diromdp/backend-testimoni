@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Get } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Get, Delete, Param, Request, ParseIntPipe } from '@nestjs/common';
 import { CurrentProjectService } from './current-project.service';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { ApiTags, ApiResponse, ApiBody } from '@nestjs/swagger';
@@ -35,6 +35,29 @@ export class CurrentProjectController {
       return { status: 200, ...result };
     } catch (error) {
       return { status: 500, message: error.message };
+    }
+  }
+
+  @Delete('by-project/:projectId')
+  @Auth()
+  @ApiResponse({ status: HttpStatus.OK, description: 'Current project berhasil dihapus' })
+  async removeByProjectId(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Request() req
+  ) {
+    try {
+      const userId = req.user.sub;
+      const result = await this.currentProjectService.removeByProjectId(projectId, userId);
+      
+      return {
+        status: 200,
+        message: result.message
+      };
+    } catch (error) {
+      return {
+        status: 500,
+        message: error.message
+      };
     }
   }
 }

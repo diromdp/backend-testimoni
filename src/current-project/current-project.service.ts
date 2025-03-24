@@ -1,5 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { Inject, Injectable, BadRequestException } from '@nestjs/common';
+import { eq, and } from 'drizzle-orm';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from './schema';
@@ -100,5 +100,42 @@ export class CurrentProjectService {
         } catch (error) {
             throw new Error(`Failed to get current project for user ${userId}: ${error.message}`);
         }
-    }  
+    }
+    
+    async removeByProjectId(projectId: number, userId: number) {
+        try {
+            // Verify current project exists and belongs to the user
+            const existingCurrentProject = await this.db
+                .select()
+                .from(schema.currentProject)
+                .where(
+                    and(
+                        eq(schema.currentProject.projectId, projectId),
+                        eq(schema.currentProject.userId, userId)
+                    )
+                )
+                .limit(1)
+                .then(rows => rows[0]);
+
+            if (!existingCurrentProject) {
+                throw new BadRequestException('Current project tidak ditemukan');
+            }
+
+            // Delete the current project
+            await this.db
+                .delete(schema.currentProject)
+                .where(
+                    and(
+                        eq(schema.currentProject.projectId, projectId),
+                        eq(schema.currentProject.userId, userId)
+                    )
+                );
+
+            return {
+                message: 'Current project berhasil dihapus',
+            };
+        } catch (error) {
+            throw new Error(`Gagal menghapus current project untuk project ${projectId}: ${error.message}`);
+        }
+    }
 }

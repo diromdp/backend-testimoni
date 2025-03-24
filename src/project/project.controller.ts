@@ -9,7 +9,8 @@ import {
   Request,
   HttpStatus,
   HttpCode,
-  Query
+  Query,
+  ParseIntPipe
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -88,9 +89,56 @@ export class ProjectController {
   }
 
   @Delete(':id')
+  @Auth()
   @HttpCode(HttpStatus.OK)
   @ApiResponse({ status: HttpStatus.OK, description: 'Project deleted successfully' })
   remove(@Param('id') id: string, @Request() req) {
     return this.projectService.remove(+id, req.user.sub);
+  }
+
+  @Delete('by-project/:projectId')
+  @Auth()
+  @ApiResponse({ status: HttpStatus.OK, description: 'Proyek berhasil dihapus' })
+  async removeByProjectId(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Request() req
+  ) {
+    try {
+      const userId = req.user.sub;
+      const result = await this.projectService.removeByProjectId(projectId, userId);
+      
+      return {
+        status: 200,
+        message: result.message
+      };
+    } catch (error) {
+      return {
+        status: 500,
+        message: error.message
+      };
+    }
+  }
+
+  @Delete('complete/:projectId')
+  @Auth()
+  @ApiResponse({ status: HttpStatus.OK, description: 'Proyek dan data terkait berhasil dihapus' })
+  async removeProjectAndRelated(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Request() req
+  ) {
+    try {
+      const userId = req.user.sub;
+      const result = await this.projectService.removeProjectAndRelated(projectId, userId);
+      
+      return {
+        status: 200,
+        message: result.message
+      };
+    } catch (error) {
+      return {
+        status: 500,
+        message: error.message
+      };
+    }
   }
 }

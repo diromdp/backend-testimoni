@@ -124,7 +124,6 @@ export class ShowcaseService {
                 })
                 .where(eq(schema.showcase.slug, slug))
                 .returning();
-
             return {
                 message: 'Showcase berhasil diperbarui',
                 showcase: updatedShowcase

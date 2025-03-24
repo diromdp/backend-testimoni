@@ -9,6 +9,7 @@ import { eq, and, gt } from 'drizzle-orm';
 import { PaginateQuery, Paginated } from 'nestjs-paginate'
 import { sql } from 'drizzle-orm';
 import { CurrentSubscriptionService } from '../current-subscription/current-subscription.service';
+import * as currentProjectSchema from '../current-project/schema';
 
 type Project = typeof schema.projects.$inferSelect;
 
@@ -181,6 +182,88 @@ export class ProjectService {
     };
     } catch (error) {
       throw new Error(`Gagal menghapus proyek ${id} untuk pengguna ${userId}: ${error.message}`);
+    }
+  }
+
+  async removeByProjectId(projectId: number, userId: number) {
+    try {
+      // Verify project exists and belongs to the user
+      const existingProject = await this.db
+        .select()
+        .from(schema.projects)
+        .where(
+          and(
+            eq(schema.projects.id, projectId),
+            eq(schema.projects.userId, userId)
+          )
+        )
+        .limit(1)
+        .then(rows => rows[0]);
+
+      if (!existingProject) {
+        throw new BadRequestException('Proyek tidak ditemukan');
+      }
+
+      // Delete the project
+      await this.db
+        .delete(schema.projects)
+        .where(eq(schema.projects.id, projectId));
+
+      return {
+        message: 'Proyek berhasil dihapus',
+      };
+    } catch (error) {
+      throw new Error(`Gagal menghapus proyek ${projectId}: ${error.message}`);
+    }
+  }
+
+  async removeProjectAndRelated(projectId: number, userId: number) {
+    try {
+      // Verify project exists and belongs to the user
+      const currentSubscription = await this.currentSubscriptionService.getCurrentSubscription(userId);
+      const existingProject = await this.db
+        .select()
+        .from(schema.projects)
+        .where(
+          and(
+            eq(schema.projects.id, projectId),
+            eq(schema.projects.userId, userId)
+          )
+        )
+        .limit(1)
+        .then(rows => rows[0]);
+
+      if (!existingProject) {
+        throw new BadRequestException('Proyek tidak ditemukan');
+      }
+
+      // Use transaction to delete both project and current project
+      await this.db.transaction(async (tx) => {
+        // Delete current project if exists
+        await tx
+          .delete(currentProjectSchema.currentProject)
+          .where(
+            and(
+              eq(currentProjectSchema.currentProject.projectId, projectId),
+              eq(currentProjectSchema.currentProject.userId, userId)
+            )
+          );
+
+        // Delete the project
+        await tx
+          .delete(schema.projects)
+          .where(eq(schema.projects.id, projectId));
+      });
+      
+      await this.currentSubscriptionService.updateFeatureUsage(userId, {
+        project: currentSubscription.featureUsage.project + 1
+      });
+
+      return {
+        message: 'Proyek dan data terkait berhasil dihapus',
+      };
+    } catch (error) {
+      throw new Error(`Gagal menghapus proyek ${projectId} dan data terkait: ${error.message}`);
     }
   }
 }
