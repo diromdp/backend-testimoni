@@ -225,6 +225,83 @@
       "when": 1742355985560,
       "tag": "0031_pretty_solo",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1743474395960,
+      "tag": "0032_minor_maggott",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1743474453202,
+      "tag": "0033_loose_cloak",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1743474485926,
+      "tag": "0034_nebulous_ironclad",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1743474560247,
+      "tag": "0035_clammy_ultimates",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1743507317794,
+      "tag": "0036_mighty_red_skull",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1743508348448,
+      "tag": "0037_whole_power_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1743508844374,
+      "tag": "0038_stormy_sir_ram",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1743508918249,
+      "tag": "0039_tidy_richard_fisk",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1743508996653,
+      "tag": "0040_loving_sharon_ventura",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1743510150824,
+      "tag": "0041_nappy_masque",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1743515201993,
+      "tag": "0042_numerous_mathemanic",
+      "breakpoints": true
     }
   ]
 }

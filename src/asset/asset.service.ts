@@ -241,6 +241,60 @@ export class AssetService {
       throw new BadRequestException('Failed to delete video');
     }
   }
+
+  /**
+   * Delete all assets (images and videos) for a given user or project
+   * @param userId Optional user ID to delete all assets for a specific user
+   * @param projectId Optional project ID to delete all assets for a specific project
+   * @returns A message indicating success
+   */
+  async deleteAllAssets(userId?: number, projectId?: number): Promise<{ message: string }> {
+    try {
+      if (!userId && !projectId) {
+        throw new BadRequestException('Either userId or projectId must be provided');
+      }
+
+      // Define the prefix based on the provided parameters
+      let prefix = 'Assets/';
+      
+      // If we have more specific folder structure based on user or project, adjust prefix
+      // For example: if assets are stored in user-specific or project-specific folders
+      // This would depend on your actual folder structure in S3
+      
+      // List all objects with the given prefix
+      const listedObjects = await this.s3.listObjectsV2({
+        Bucket: this.bucket,
+        Prefix: prefix,
+      });
+
+      if (!listedObjects.Contents || listedObjects.Contents.length === 0) {
+        return { message: 'No assets found to delete' };
+      }
+
+      // Prepare objects for deletion
+      const deleteParams = {
+        Bucket: this.bucket,
+        Delete: {
+          Objects: listedObjects.Contents.map(({ Key }) => ({ Key })),
+          Quiet: false,
+        },
+      };
+
+      // Delete the objects
+      await this.s3.deleteObjects(deleteParams);
+
+      // If there are more objects to delete (pagination)
+      if (listedObjects.IsTruncated) {
+        // Recursive call to delete remaining objects
+        await this.deleteAllAssets(userId, projectId);
+      }
+
+      return { message: 'All assets deleted successfully' };
+    } catch (error) {
+      console.error('Error deleting all assets:', error);
+      throw new BadRequestException(`Failed to delete all assets: ${error.message}`);
+    }
+  }
 }
 
 

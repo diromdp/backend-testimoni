@@ -19,7 +19,6 @@ export class ShowcaseController {
     @Post()
     @Auth()
     @ApiResponse({ status: HttpStatus.CREATED, description: 'Showcase berhasil dibuat' })
-
     async create(@Body() createShowcaseDto: CreateShowcaseDto, @Request() req) {
         try {
             const { name, slug, projectId } = createShowcaseDto;

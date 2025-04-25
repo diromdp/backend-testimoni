@@ -36,11 +36,10 @@ export class CurrentSubscriptionService {
 			.values({
 				userId,
 				subscriptionId: freeSubscription.id,
-				startDate,
-				endDate,
-				nextBillingDate: endDate,
-				status: 'ACTIVE',
-				isAutoRenew: false,
+				transactionStatus: 'pending',
+				paymentBase: {},
+				orderPayment: '',
+				grossAmount: 0,
 			})
 			.returning();
 
@@ -52,6 +51,7 @@ export class CurrentSubscriptionService {
 				subscriptionId: freeSubscription.id,
 				orderSubscriptionId: orderSubscription.id,
 				type: 'free',
+				nameSubscription: freeSubscription.name,
 				featureUsage: freeSubscription.features,
 				featureLimit: freeSubscription.features,
 				startDate,
@@ -65,18 +65,37 @@ export class CurrentSubscriptionService {
 	}
 
 	async getCurrentSubscription(userId: number): Promise<any> {
-		const currentSubscription = await this.db
-			.select()
+		const result = await this.db
+			.select({
+				currentSubscription: schema.currentSubscriptions,
+				grossAmount: orderSubscriptionSchema.orderSubscriptions.grossAmount,
+				transactionStatus: orderSubscriptionSchema.orderSubscriptions.transactionStatus,
+				paymentBase: orderSubscriptionSchema.orderSubscriptions.paymentBase,
+				orderPayment: orderSubscriptionSchema.orderSubscriptions.orderPayment,
+			})
 			.from(schema.currentSubscriptions)
+			.leftJoin(
+				orderSubscriptionSchema.orderSubscriptions,
+				eq(schema.currentSubscriptions.orderSubscriptionId, orderSubscriptionSchema.orderSubscriptions.id)
+			)
 			.where(eq(schema.currentSubscriptions.userId, userId))
-			.limit(1)
-			.then(rows => rows[0]);
+			.limit(1);
 
-		if (!currentSubscription) {
+		if (!result || result.length === 0) {
 			throw new Error('Current subscription not found for this user');
 		}
 
-		return currentSubscription;
+		// Merge the current subscription with grossAmount
+		const subscription = {
+			...result[0].currentSubscription,
+			grossAmount: result[0].grossAmount || 0,
+			transactionStatus: result[0].transactionStatus,
+			paymentBase: result[0].paymentBase,
+			orderPayment: result[0].orderPayment,
+
+		};
+
+		return subscription;
 	}
 
 	async updateFeatureUsage(userId: number, featureUsage: Record<string, any>): Promise<any> {

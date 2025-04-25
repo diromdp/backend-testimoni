@@ -3,15 +3,15 @@ import { relations } from 'drizzle-orm';
 import { users } from '../user/schema';
 import { subscriptions } from '../subscription/schema';
 import { currentSubscriptions } from '../current-subscription/schema';
+
 export const orderSubscriptions = pgTable('order_subscriptions', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   subscriptionId: integer('subscription_id').references(() => subscriptions.id).notNull(),
-  startDate: timestamp('start_date').notNull(),
-  endDate: timestamp('end_date').notNull(),
-  nextBillingDate: timestamp('next_billing_date').notNull(),
-  status: varchar('status', { length: 20 }).notNull().default('Pending'),
-  isAutoRenew: boolean('is_auto_renew').default(true),
+  orderPayment: varchar('order_payment', { length: 255 }),
+  transactionStatus: varchar('transaction_status', { length: 225 }).notNull().default('PENDING'),
+  paymentBase: jsonb('payment_base').default({}),
+  grossAmount: integer('gross_amount').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

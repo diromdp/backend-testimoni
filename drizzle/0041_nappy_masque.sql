@@ -1,0 +1,1 @@
+ALTER TABLE "current_subscriptions" ADD COLUMN "name_subscription" varchar(255);

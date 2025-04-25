@@ -8,9 +8,11 @@ export class MailService {
 
   async sendVerificationEmail(email: string, token: string) {
     const verificationLink = `${process.env.APP_URL}/verify-email?token=${token}`;
+    console.log(verificationLink);
 
-    await this.mailerService.sendMail({
-      to: email,
+    try {
+      await this.mailerService.sendMail({
+        to: email,
       subject: 'Please verify your email',
       html: `
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -213,5 +215,30 @@ text-decoration: none
 </html>
       `,
     });
+      console.log('Email sent');
+    } catch (error) {
+      console.log('Email not sent:' + error);
+    }
+  }
+  
+  async sendEmailMailer(options: {
+    to: string | string[];
+    subject: string;
+    html: string;
+    cc?: string | string[];
+    bcc?: string | string[];
+    from?: string;
+    attachments?: Array<{
+      filename?: string;
+      content?: any;
+      path?: string;
+      contentType?: string;
+    }>;
+  }) {
+    try {
+      return await this.mailerService.sendMail(options);
+    } catch (error) {
+      console.log('Email not sent Modular :' + error);
+    }
   }
 } 

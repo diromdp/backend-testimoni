@@ -1,0 +1,1 @@
+ALTER TABLE "order_subscriptions" RENAME COLUMN "order_payment_id" TO "order_payment";

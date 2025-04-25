@@ -9,6 +9,7 @@ export const currentSubscriptions = pgTable('current_subscriptions', {
     subscriptionId: integer('subscription_id').references(() => subscriptions.id).notNull(),
     orderSubscriptionId: integer('order_subscription_id').references(() => orderSubscriptions.id).notNull(),
     type: varchar('type', { length: 50 }).notNull(),
+    nameSubscription: varchar('name_subscription', { length: 255 }),
     featureUsage: jsonb('feature_usage').notNull(),
     featureLimit: jsonb('feature_limit').notNull(),
     startDate: timestamp('start_date').notNull(),

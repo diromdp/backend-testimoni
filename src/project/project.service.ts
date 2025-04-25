@@ -237,6 +237,9 @@ export class ProjectService {
         throw new BadRequestException('Proyek tidak ditemukan');
       }
 
+      // Delete all testimonials related to the project
+      
+
       // Use transaction to delete both project and current project
       await this.db.transaction(async (tx) => {
         // Delete current project if exists

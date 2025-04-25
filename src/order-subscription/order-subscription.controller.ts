@@ -14,6 +14,7 @@ import {
   Res
 } from '@nestjs/common';
 import { OrderSubscriptionService } from './order-subscription.service';
+import { SubscriptionService } from '../subscription/subscription.service';
 import { CreateOrderSubscriptionDto } from './dto/create-order-subscription.dto';
 import { UpdateOrderSubscriptionDto } from './dto/update-order-subscription.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
@@ -28,298 +29,145 @@ import { ConfigService } from '@nestjs/config';
 export class OrderSubscriptionController {
   constructor(
     private readonly orderSubscriptionService: OrderSubscriptionService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly subscriptionService: SubscriptionService
   ) { }
-
-  // User endpoints
-  @Auth()
-  @Post('create')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'Order subscription created successfully' })
-  create(@Body() createOrderSubscriptionDto: CreateOrderSubscriptionDto, @Request() req) {
-    try {
-
-      return this.orderSubscriptionService.create(req.user.sub, createOrderSubscriptionDto);
-    } catch (error) {
-      return { status: error.status || 500, message: error.message };
-    }
-  }
-
-  @Auth()
-  @Patch(':id')
-  @HttpCode(HttpStatus.OK)
-  @ApiResponse({ status: HttpStatus.OK, description: 'Order subscription updated successfully' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Subscription not found' })
-
-  update(@Param('id') id: string, @Body() updateOrderSubscriptionDto: UpdateOrderSubscriptionDto, @UserId() userId: number) {
-    try {
-      return this.orderSubscriptionService.update(+id, updateOrderSubscriptionDto, userId);
-    } catch (error) {
-      return { status: error.status || 500, message: error.message };
-    }
-  }
-
-  // Admin endpoints
-  @AdminAuth()
-  @Post('admin/create')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'Order subscription created by admin successfully' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Only superadmin can create order subscriptions' })
-  async adminCreate(
-    @Body() createOrderSubscriptionDto: CreateOrderSubscriptionDto & { userId: number },
-    @Request() req
-  ) {
-    try {
-      if (!createOrderSubscriptionDto.userId) {
-        throw new BadRequestException('User ID is required');
-      }
-      return await this.orderSubscriptionService.create(
-        createOrderSubscriptionDto.userId,
-        createOrderSubscriptionDto
-      );
-    } catch (error) {
-      return { status: error.status || 500, message: error.message };
-    }
-  }
-
-  // @AdminAuth()
-  // @Patch('admin/:id')
-  // @ApiResponse({ status: HttpStatus.OK, description: 'Order subscription updated by admin successfully' })
-  // @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Only superadmin can update order subscriptions' })
-  // async adminUpdate(
-  //   @Param('id') id: string,
-  //   @Body() updateOrderSubscriptionDto: UpdateOrderSubscriptionDto,
-  //   @Request() req
-  // ) {
-  //   try {
-  //     return await this.orderSubscriptionService.update(+id, updateOrderSubscriptionDto, req.user.role);
-  //   } catch (error) {
-  //     return { status: error.status || 500, message: error.message };
-  //   }
-  // }
-
-  @AdminAuth()
-  @Get('admin/list')
-  @ApiResponse({ status: HttpStatus.OK, description: 'Order subscriptions retrieved successfully' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Only superadmin can view order subscriptions' })
-  async adminList(
-    @Request() req,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-    @Query('status') status?: string
-  ) {
-    try {
-      if (req.user.role !== 'superadmin') {
-        throw new BadRequestException('Only superadmin can view order subscriptions');
-      }
-      return await this.orderSubscriptionService.findAll(page, limit, status);
-    } catch (error) {
-      return { status: error.status || 500, message: error.message };
-    }
-  }
-
-  @AdminAuth()
-  @Get('admin/:id')
-  @ApiResponse({ status: HttpStatus.OK, description: 'Order subscription retrieved successfully' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Only superadmin can view order subscriptions' })
-  async adminFindOne(@Param('id') id: string, @Request() req) {
-    try {
-      if (req.user.role !== 'superadmin') {
-        throw new BadRequestException('Only superadmin can view order subscriptions');
-      }
-      return await this.orderSubscriptionService.findOne(+id);
-    } catch (error) {
-      return { status: error.status || 500, message: error.message };
-    }
-  }
-
-  @AdminAuth()
-  @Delete(':id')
-  @ApiResponse({ status: HttpStatus.OK, description: 'Order subscription deleted successfully' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Only superadmin can delete order subscriptions' })
-  remove(@Param('id') id: string, @Request() req) {
-    return this.orderSubscriptionService.remove(+id, req.user.role);
-  }
-
-  @Auth()
-  @Get('history')
-  @HttpCode(HttpStatus.OK)
-  @ApiResponse({ status: HttpStatus.OK, description: 'Riwayat order subscription berhasil ditemukan' })
-  async getUserOrderHistory(@Request() req) {
-    try {
-      const userId = req.user.sub;
-      const result = await this.orderSubscriptionService.getUserOrderHistory(userId);
-
-      return {
-        status: 200,
-        message: result.message,
-        data: result.orders
-      };
-    } catch (error) {
-      return {
-        status: error.status || 500,
-        message: error.message
-      };
-    }
-  }
-
-  // Midtrans Payment Integration
-  @Auth()
-  @Post('payment/create-token')
-  @HttpCode(HttpStatus.OK)
-  @ApiResponse({ status: HttpStatus.OK, description: 'Payment token created successfully' })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Failed to create payment token' })
-  async createPaymentToken(@Body() body: { subscriptionId: number }, @Request() req) {
-    try {
-      const { subscriptionId } = body;
-      const userId = req.user.sub;
-
-      if (!subscriptionId) {
-        throw new BadRequestException('Subscription ID is required');
-      }
-
-      const result = await this.orderSubscriptionService.generateSnapToken({
-        userId,
-        subscriptionId,
-        userName: req.user.name,
-        userEmail: req.user.email
-      });
-
-      return {
-        status: 200,
-        message: 'Payment token created successfully',
-        data: result
-      };
-    } catch (error) {
-      return {
-        status: error.status || 500,
-        message: error.message
-      };
-    }
-  }
-
-  @Post('payment/notification')
-  @HttpCode(HttpStatus.OK)
-  @ApiResponse({ status: HttpStatus.OK, description: 'Payment notification processed successfully' })
-  async handlePaymentNotification(@Body() notification: any) {
-    try {
-      // Verify the notification from Midtrans
-      const verificationResult = await this.orderSubscriptionService.verifyPaymentNotification(notification);
-
-      // Extract order ID and parse to get user and subscription info
-      const { orderId, paymentStatus } = verificationResult;
-      const orderParts = orderId.split('-');
-      const userId = parseInt(orderParts[orderParts.length - 1]);
-
-
-      // Extract subscription ID from the transaction
-      const subscriptionId = notification.item_details &&
-        notification.item_details[0] &&
-        notification.item_details[0].id ?
-        parseInt(notification.item_details[0].id.replace('SUB-', '')) :
-        null;
-
-      if (!subscriptionId) {
-        throw new BadRequestException('Could not determine subscription ID from notification');
-      }
-
-      if (paymentStatus === 'SUCCESS') {
-        // Create subscription order
-        await this.orderSubscriptionService.create(
-          userId,
-          { subscriptionId },
-          'system'
-        );
-
-        // Send success email
-        const user = await this.orderSubscriptionService.getUserByOrderId(orderId);
-
-        await this.orderSubscriptionService.sendPaymentSuccessEmail(user.email, {
-          name: user.name,
-          subscriptionName: notification.item_details[0].name,
-          amount: notification.transaction_details.gross_amount,
-          orderId: orderId
-        });
-      } else if (paymentStatus === 'PENDING') {
-        // Send pending email
-        const user = await this.orderSubscriptionService.getUserByOrderId(orderId);
-
-        await this.orderSubscriptionService.sendPaymentPendingEmail(user.email, {
-          name: user.name,
-          subscriptionName: notification.item_details[0].name,
-          orderId: orderId
-        });
-      } else {
-        // Send failure email
-        const user = await this.orderSubscriptionService.getUserByOrderId(orderId);
-
-        await this.orderSubscriptionService.sendPaymentFailedEmail(user.email, {
-          name: user.name,
-          subscriptionName: notification.item_details[0].name,
-          orderId: orderId
-        });
-      }
-
-      return {
-        status: 200,
-        message: 'Payment notification processed successfully'
-      };
-    } catch (error) {
-      console.error('Error handling payment notification:', error);
-      return {
-        status: error.status || 500,
-        message: error.message
-      };
-    }
-  }
 
   @Auth()
   @Get('payment/finish')
   async handleFinishRedirect(
     @Query('order_id') orderId: string,
-    @Res() res: any,
+    @Query('subscription_id') subscriptionId: number,
     @Request() req
   ) {
     try {
       // Parse order ID to get user ID
       const userId = req.user.sub;
-
+      
+      console.log('Received params:', { orderId, subscriptionId, userId });
+  
+      // Check if this orderPayment has already been processed
+      const existingOrder = await this.orderSubscriptionService.getOrderPayment(orderId);
       const transactionStatus = await this.orderSubscriptionService.checkTransactionStatus(orderId);
 
-      if ((transactionStatus.transaction_status === 'settlement' ||
-        transactionStatus.transaction_status === 'capture') &&
-        transactionStatus.fraud_status === 'accept') {
-
-        // Extract subscription ID from the transaction
-        const subscriptionId = transactionStatus.item_details &&
-          transactionStatus.item_details[0] &&
-          transactionStatus.item_details[0].id ?
-          parseInt(transactionStatus.item_details[0].id.replace('SUB-', '')) :
-          null;
-
+      if (existingOrder) {
+        return {
+          status: 200,
+          message: 'Payment has already been processed',
+          data: {
+            orderId: orderId,
+            subscriptionId: subscriptionId,
+            orderSubscriptionId: existingOrder.id,
+            transaction_status: transactionStatus.transaction_status,
+            payment_type: transactionStatus.payment_type,
+            va_number: transactionStatus.va_number,
+            gross_amount: transactionStatus.gross_amount,
+          }
+        };
+      }
+  
+      // Periksa transactionStatus dari Midtrans
+      console.log('Transaction status from Midtrans:', transactionStatus);
+      
+      const subscriptionName = await this.subscriptionService.findOnePublic(subscriptionId);
+  
+      // Perubahan kondisi: periksa lebih banyak status valid
+      if (transactionStatus.transaction_status === 'settlement' || 
+          transactionStatus.transaction_status === 'capture' || 
+          transactionStatus.transaction_status === 'success') {
+        
         if (subscriptionId) {
-          // Create subscription
-          await this.orderSubscriptionService.create(
+          console.log('Creating subscription for user:', userId, 'with subscription:', subscriptionId);
+
+          const paymentBase = {
+            payment_type: transactionStatus.payment_type,
+            va_number: transactionStatus.va_number,
+            gross_amount: transactionStatus.gross_amount,
+          }
+          
+          // Set status ACTIVE untuk transaksi yang berhasil
+          const newOrderSubscription = await this.orderSubscriptionService.create(
             userId,
-            { subscriptionId },
-            status:transactionStatus.transaction_status
+            { subscriptionId, paymentBase },
+            transactionStatus.transaction_status,
+            orderId
           );
-
-          // Send success email
+  
+          console.log('New order subscription created:', newOrderSubscription);
+  
+          // Set subscription di current_subscriptions
+          const result = await this.orderSubscriptionService.setSubscription(
+            userId,
+            subscriptionId,
+            newOrderSubscription.orderSubscription.id
+          );
+          
+          console.log('Subscription set result:', result);
+  
+          // Kirim email sukses
           const user = await this.orderSubscriptionService.getUserByOrderId(orderId);
-
+          
           await this.orderSubscriptionService.sendPaymentSuccessEmail(user.email, {
             name: user.name,
-            subscriptionName: transactionStatus.item_details[0].name,
-            amount: transactionStatus.transaction_details.gross_amount,
+            subscriptionName: `${subscriptionName.name} (${subscriptionName.type})`,
+            amount: transactionStatus.gross_amount,
             orderId: orderId
           });
-          return res.redirect(`${this.configService.get('BASE_URL')}/dashboard?payment=success`);
+          
+          return {
+            status: 200,
+            message: 'Payment successful',
+            data: {
+              orderId: orderId,
+              subscriptionId: subscriptionId,
+              transaction_status: transactionStatus.transaction_status,
+              payment_type: transactionStatus.payment_type,
+              va_number: transactionStatus.va_number,
+              gross_amount: transactionStatus.gross_amount,
+            }
+          };
+        } else {
+          throw new BadRequestException('Subscription ID is required');
         }
+      } else if (transactionStatus.transaction_status === 'pending') {
+        // Untuk status pending, kembalikan informasi yang sesuai
+        return {
+          status: 202,
+          message: 'Payment is pending',
+          data: {
+            orderId: orderId,
+            subscriptionId: subscriptionId,
+            transaction_status: transactionStatus.transaction_status,
+            payment_type: transactionStatus.payment_type,
+            va_number: transactionStatus.va_number,
+            gross_amount: transactionStatus.gross_amount,
+          }
+        };
+      } else {
+        // Untuk status lain (deny, cancel, expire, dll)
+        return {
+          status: 400,
+          message: `Payment failed with status: ${transactionStatus.transaction_status}`,
+          data: {
+            orderId: orderId,
+            subscriptionId: subscriptionId,
+            transaction_status: transactionStatus.transaction_status,
+            payment_type: transactionStatus.payment_type,
+            va_number: transactionStatus.va_number,
+            gross_amount: transactionStatus.gross_amount,
+          }
+        };
       }
     } catch (error) {
       console.error('Error handling finish redirect:', error);
-      return res.redirect(`${this.configService.get('BASE_URL')}/subscription?payment=error`);
+      return {
+        status: 500,
+        message: `Payment processing error: ${error.message}`,
+        data: {
+          orderId: orderId,
+          error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }
+      };
     }
   }
 
@@ -366,6 +214,63 @@ export class OrderSubscriptionController {
     } catch (error) {
       console.error('Error handling unfinish redirect:', error);
       return res.redirect(`${this.configService.get('BASE_URL')}/subscription?payment=error`);
+    }
+  }
+
+  @Auth()
+  @Get('history')
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({ status: HttpStatus.OK, description: 'Riwayat order subscription berhasil ditemukan' })
+  async getUserOrderHistory(@Request() req) {
+    try {
+      const userId = req.user.sub;
+      const result = await this.orderSubscriptionService.getUserOrderHistory(userId);
+      
+      return {
+        status: 200,
+        message: result.message,
+        data: result.orders
+      };
+    } catch (error) {
+      return {
+        status: error.status || 500,
+        message: error.message
+      };
+    }
+  }
+
+  // Midtrans Payment Integration
+  @Auth()
+  @Post('payment/create-token')
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({ status: HttpStatus.OK, description: 'Payment token created successfully' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Failed to create payment token' })
+  async createPaymentToken(@Body() body: { subscriptionId: number }, @Request() req) {
+    try {
+      const { subscriptionId } = body;
+      const userId = req.user.sub;
+
+      if (!subscriptionId) {
+        throw new BadRequestException('Subscription ID is required');
+      }
+
+      const result = await this.orderSubscriptionService.generateSnapToken({
+        userId,
+        subscriptionId,
+        userName: req.user.name,
+        userEmail: req.user.email
+      });
+
+      return {
+        status: 200,
+        message: 'Payment token created successfully',
+        data: result
+      };
+    } catch (error) {
+      return {
+        status: error.status || 500,
+        message: error.message
+      };
     }
   }
 }

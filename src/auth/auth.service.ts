@@ -74,7 +74,8 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        planType: currentSubscription?.subscriptions?.planType || null,
+        phone: user.phone,
+        planType: currentSubscription?.current_subscriptions.type || null,
       },
     };
   }

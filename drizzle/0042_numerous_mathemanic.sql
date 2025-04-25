@@ -1,0 +1,1 @@
+ALTER TABLE "order_subscriptions" DROP CONSTRAINT "order_subscriptions_order_payment_unique";

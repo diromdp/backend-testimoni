@@ -58,7 +58,7 @@ export class FormController {
   @Get(':slug')
   @HttpCode(HttpStatus.OK)
   @ApiResponse({ status: HttpStatus.OK, description: 'Form retrieved successfully' })
-  async findOne(@UserId() userId: number, @Param('slug') slug: string, @Request() req) {
+  async findOne( @Param('slug') slug: string) {
     try {
       const result = await this.formService.findBySlug(slug);
       return result;

@@ -1,0 +1,1 @@
+ALTER TABLE "order_subscriptions" ALTER COLUMN "payment" SET DEFAULT '{}'::jsonb;

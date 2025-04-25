@@ -121,4 +121,106 @@ export class UserService {
       throw new Error(`Gagal memverifikasi email untuk pengguna ${user.id}: ${error.message}`);
     }
   }
+
+  async updateProfile(userId: number, data: { name?: string, email?: string, phone?: string }) {
+    // Validate email if provided
+    if (data.email && !isValidEmail(data.email)) {
+      throw new BadRequestException('Format email tidak valid');
+    }
+
+    // Validate and normalize phone if provided
+    if (data.phone) {
+      // Validate Indonesian phone number
+      const phoneRegex = /^(?:\+62|62|0)8[1-9][0-9]{6,10}$/;
+      if (!phoneRegex.test(data.phone)) {
+        throw new BadRequestException('Format nomor telepon Indonesia tidak valid. Harus diawali dengan +62, 62, atau 0, diikuti oleh 8 dan 7-11 digit');
+      }
+
+      // Normalize phone number to +62 format
+      let normalizedPhone = data.phone;
+      if (normalizedPhone.startsWith('0')) {
+        normalizedPhone = '+62' + normalizedPhone.substring(1);
+      } else if (normalizedPhone.startsWith('62')) {
+        normalizedPhone = '+' + normalizedPhone;
+      }
+      data.phone = normalizedPhone;
+
+      // Check if phone number is already used by another user
+      const existingUserByPhone = await this.db.query.users.findFirst({
+        where: eq(schema.users.phone, data.phone),
+      });
+
+      if (existingUserByPhone && existingUserByPhone.id !== userId) {
+        throw new ConflictException('Nomor telepon ini sudah digunakan oleh pengguna lain');
+      }
+    }
+
+    // Check if email is already used by another user
+    if (data.email) {
+      const existingUserByEmail = await this.db.query.users.findFirst({
+        where: eq(schema.users.email, data.email),
+      });
+
+      if (existingUserByEmail && existingUserByEmail.id !== userId) {
+        throw new ConflictException('Email ini sudah digunakan oleh pengguna lain');
+      }
+    }
+
+    try {
+      // Update user profile
+      const [updatedUser] = await this.db.update(schema.users)
+        .set({
+          name: data.name !== undefined ? data.name : undefined,
+          email: data.email !== undefined ? data.email : undefined,
+          phone: data.phone !== undefined ? data.phone : undefined,
+        })
+        .where(eq(schema.users.id, userId))
+        .returning();
+
+      return {
+        message: 'Profil berhasil diperbarui',
+        user: {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          phone: updatedUser.phone,
+        }
+      };
+    } catch (error) {
+      throw new BadRequestException(`Gagal memperbarui profil: ${error.message}`);
+    }
+  }
+
+  async updatePassword(userId: number, data: { oldPassword: string, newPassword: string }) {
+    // Find the user
+    const user = await this.db.query.users.findFirst({
+      where: eq(schema.users.id, userId),
+    });
+
+    if (!user) {
+      throw new BadRequestException('Pengguna tidak ditemukan');
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(data.oldPassword, user.password);
+    if (!isPasswordValid) {
+      throw new BadRequestException('Password saat ini tidak valid');
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+
+    try {
+      // Update the password
+      await this.db.update(schema.users)
+        .set({ password: hashedPassword })
+        .where(eq(schema.users.id, userId));
+
+      return {
+        message: 'Password berhasil diperbarui',
+      };
+    } catch (error) {
+      throw new BadRequestException(`Gagal memperbarui password: ${error.message}`);
+    }
+  }
 }

@@ -160,4 +160,15 @@ export class SubscriptionService {
       throw new Error(`Failed to find all public subscriptions: ${error.message}`);
     }
   }
+
+  async findOnePublic(id: number) {
+    const subscription = await this.db
+      .select()
+      .from(schema.subscriptions)
+      .where(eq(schema.subscriptions.id, id))
+      .limit(1);
+
+    return subscription[0];
+  }
+  
 }

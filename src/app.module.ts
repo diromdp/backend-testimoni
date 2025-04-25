@@ -7,7 +7,6 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { SubscriptionModule } from './subscription/subscription.module';
-import { IS_PUBLIC_KEY } from './admin/decorators/public.decorator';
 import { OrderSubscriptionModule } from './order-subscription/order-subscription.module';
 import { ProjectModule } from './project/project.module';
 import { CurrentProjectModule } from './current-project/current-project.module';
@@ -17,6 +16,7 @@ import { AssetModule } from './asset/asset.module';
 import { TagModule } from './tag/tag.module';
 import { TestimoniModule } from './testimoni/testimoni.module';
 import { ShowcaseModule } from './showcase/showcase.module';
+import { SubscriptionReminderModule } from './subscription-reminder/subscription-reminder.module';
 
 @Module({
   imports: [
@@ -42,6 +42,7 @@ import { ShowcaseModule } from './showcase/showcase.module';
     TagModule,
     TestimoniModule,
     ShowcaseModule,
+    SubscriptionReminderModule,
   ],
   providers: [
     {

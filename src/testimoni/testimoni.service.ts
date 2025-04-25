@@ -378,4 +378,74 @@ export class TestimonialService {
         }
     }
 
+    async createPublic(userId: number, projectId: number, createTestimonialDto: any, formId: number) {
+        try {
+            // Verify form and project exist
+            if (!projectId) {
+                throw new BadRequestException('ID proyek diperlukan');
+            }
+
+            if (!formId) {
+                throw new BadRequestException('ID form diperlukan');
+            }
+            if (!userId) {
+                throw new BadRequestException('ID user diperlukan');
+            }
+
+            // Get current subscription feature usage
+            const currentSubscription = await this.currentSubscriptionService.getCurrentSubscription(userId);
+            
+            // Check limits based on testimonial type
+            const { type, source } = createTestimonialDto;
+            
+            // Determine which feature to check and update
+            let featureToUpdate = '';
+            let featureLimit = 0;
+            
+            if (type === 'import') {
+                featureToUpdate = 'import_social_media';
+                featureLimit = currentSubscription.featureUsage?.import_social_media || 0;
+            } else if (source === 'video') {
+                featureToUpdate = 'video';
+                featureLimit = currentSubscription.featureUsage?.video || 0;
+            } else if (source === 'text') {
+                // Default for 'text' or any other type
+                featureToUpdate = 'max_testimoni';
+                featureLimit = currentSubscription.featureUsage?.max_testimoni || 0;
+            }
+            
+            if (featureLimit === 0) {
+                throw new ForbiddenException({
+                    message: `Gagal membuat testimoni, sudah mencapai batas maksimal`,
+                });
+            }
+
+            // Create the testimonial directly without checking subscription limits
+            const [testimonial] = await this.db
+                .insert(schema.testimonials)
+                .values({
+                    ...createTestimonialDto,
+                    projectId,
+                    formId,
+                    // Set default status as needed, e.g., 'pending' for moderation
+                    status: 'pending',
+                })
+                .returning();
+
+            // Update the appropriate feature usage count
+            const updateData = {
+                [featureToUpdate]: currentSubscription.featureUsage[featureToUpdate] - 1
+            };
+            
+            await this.currentSubscriptionService.updateFeatureUsage(userId, updateData);
+
+            return {
+                message: 'Testimonial berhasil dibuat',
+                testimonial: testimonial,
+            };
+        } catch (error) {
+            throw new Error(`${error.message}`);
+        }
+    }
+
 }
