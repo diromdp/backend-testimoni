@@ -6,7 +6,7 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from './schema';
 import { eq, and, inArray } from 'drizzle-orm';
 import { PaginateQuery, Paginated } from 'nestjs-paginate'
-import { sql } from 'drizzle-orm';
+import { sql, desc } from 'drizzle-orm';
 import { CurrentSubscriptionService } from '../current-subscription/current-subscription.service';
 
 type Testimonial = typeof schema.testimonials.$inferSelect;
@@ -101,6 +101,7 @@ export class TestimonialService {
                 this.db.select()
                     .from(schema.testimonials)
                     .where(whereCondition)
+                    .orderBy(desc(schema.testimonials.createdAt))
                     .limit(limit)
                     .offset(offset),
                 this.db.select({ count: sql<number>`count(*)` })
@@ -328,14 +329,6 @@ export class TestimonialService {
                 throw new BadRequestException(`Beberapa testimonial tidak ditemukan: ${missingIds.join(', ')}`);
             }
 
-            // Group testimonials by type for feature usage update
-            const typeGroups = existingTestimonials.reduce((acc, testimonial) => {
-                const type = testimonial.type || 'text'; // Default to 'text' if type is not specified
-                acc[type] = (acc[type] || 0) + 1;
-                return acc;
-            }, {});
-
-            
             // Get current subscription
             const currentSubscription = await this.currentSubscriptionService.getCurrentSubscription(userId);
 
@@ -349,21 +342,20 @@ export class TestimonialService {
             // Update feature usage based on types
             const updateData = {};
             
-            if (typeGroups['import']) {
-                updateData['import_social_media'] = currentSubscription.featureUsage.import_social_media + typeGroups['import'];
-            }
+            // Count testimonials by type and update feature usage accordingly
+            const importCount = existingTestimonials.filter(t => t.type === 'import').length;
+            const videoCount = existingTestimonials.filter(t => t.source === 'video').length;
+            const textCount = existingTestimonials.filter(t => t.source === 'text').length;
             
-            if (typeGroups['video']) {
-                updateData['video'] = currentSubscription.featureUsage.video + typeGroups['video'];
-            }
-            
-            // For 'text' or any other type
-            const otherTypesCount = Object.entries(typeGroups)
-                .filter(([type]) => type !== 'import' && type !== 'video')
-                .reduce((sum, [_, count]) => sum + Number(count), 0);
-                
-            if (otherTypesCount > 0) {
-                updateData['max_testimoni'] = currentSubscription.featureUsage.max_testimoni + otherTypesCount;
+            if (importCount > 0) {
+                updateData['import_social_media'] = currentSubscription.featureUsage.import_social_media + importCount;
+            } else {
+                if (videoCount > 0) {
+                    updateData['video'] = currentSubscription.featureUsage.video + videoCount;
+                }
+                if (textCount > 0) {
+                    updateData['max_testimoni'] = currentSubscription.featureUsage.max_testimoni + textCount;
+                }
             }
             
             if (Object.keys(updateData).length > 0) {
@@ -405,7 +397,7 @@ export class TestimonialService {
             if (type === 'import') {
                 featureToUpdate = 'import_social_media';
                 featureLimit = currentSubscription.featureUsage?.import_social_media || 0;
-            } else if (source === 'video') {
+            } else if (type === 'video' || source === 'video') {
                 featureToUpdate = 'video';
                 featureLimit = currentSubscription.featureUsage?.video || 0;
             } else if (source === 'text') {
@@ -447,5 +439,4 @@ export class TestimonialService {
             throw new Error(`${error.message}`);
         }
     }
-
 }
