@@ -2,8 +2,8 @@ import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from './schema';
-import { eq, desc, sql } from 'drizzle-orm';
-import { PaginateQuery } from 'nestjs-paginate';
+import { eq, desc, sql, and } from 'drizzle-orm';
+import { PaginateQuery, Paginated } from 'nestjs-paginate';
 import { CurrentSubscriptionService } from '../current-subscription/current-subscription.service';
 import { ForbiddenException } from '@nestjs/common';
 
@@ -211,6 +211,82 @@ export class ShowcaseService {
             };
         } catch (error) {
             throw new Error(`Gagal mendapatkan daftar showcase: ${error.message}`);
+        }
+    }
+    
+    async findBySlugPublic(slug: string) {
+        try {
+            const showcase = await this.db
+                .select()
+                .from(schema.showcase)
+                .where(eq(schema.showcase.slug, slug))
+                .limit(1)
+                .then(rows => rows[0]);
+
+            if (!showcase) {
+                throw new BadRequestException('Showcase tidak ditemukan');
+            }
+
+            // Only return published showcases to the public
+            if (showcase.status !== 'published') {
+                throw new BadRequestException('Showcase tidak ditemukan');
+            }
+
+            return showcase;
+        } catch (error) {
+            throw new Error(`Gagal menemukan showcase: ${error.message}`);
+        }
+    }
+
+    async findApprovedTestimoniByProjectId(projectId: number, query: PaginateQuery): Promise<Paginated<any>> {
+        const { limit = 10, page = 1 } = query;
+        const offset = (page - 1) * limit;
+
+        try {
+            // Import testimoni schema
+            const testimoniSchema = await import('../testimoni/schema');
+            
+            // Build where condition
+            const whereCondition = and(
+                eq(testimoniSchema.testimonials.projectId, projectId),
+                eq(testimoniSchema.testimonials.status, 'approved')
+            );
+
+            const [data, total] = await Promise.all([
+                this.db.select()
+                    .from(testimoniSchema.testimonials)
+                    .where(whereCondition)
+                    .orderBy(desc(testimoniSchema.testimonials.createdAt))
+                    .limit(limit)
+                    .offset(offset),
+                this.db.select({ count: sql<number>`count(*)` })
+                    .from(testimoniSchema.testimonials)
+                    .where(whereCondition)
+                    .then(result => Number(result[0].count))
+            ]);
+
+            return {
+                data: data.length === 0 ? [] : data,
+                meta: {
+                    itemsPerPage: limit,
+                    totalItems: total,
+                    currentPage: page,
+                    totalPages: Math.ceil(total / limit),
+                    sortBy: [],
+                    searchBy: [],
+                    search: '',
+                    select: []
+                },
+                links: {
+                    first: `${process.env.BASE_URL}/public/showcase/project/${projectId}/testimonials?page=${1}&limit=${limit}`,
+                    last: `${process.env.BASE_URL}/public/showcase/project/${projectId}/testimonials?page=${Math.ceil(total / limit)}&limit=${limit}`,
+                    previous: `${process.env.BASE_URL}/public/showcase/project/${projectId}/testimonials?page=${page - 1}&limit=${limit}`,
+                    next: `${process.env.BASE_URL}/public/showcase/project/${projectId}/testimonials?page=${page + 1}&limit=${limit}`,
+                    current: `${process.env.BASE_URL}/public/showcase/project/${projectId}/testimonials?page=${page}&limit=${limit}`
+                }
+            };
+        } catch (error) {
+            throw new Error(`Gagal mendapatkan testimonial untuk project ${projectId}: ${error.message}`);
         }
     }
 }
