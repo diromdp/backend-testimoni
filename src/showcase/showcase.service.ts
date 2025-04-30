@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, Inject } from '@nestjs/common';
+import { Injectable, BadRequestException, Inject, InternalServerErrorException } from '@nestjs/common';
 import { DATABASE_CONNECTION } from '../database/database-connection';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from './schema';
@@ -224,12 +224,12 @@ export class ShowcaseService {
                 .then(rows => rows[0]);
 
             if (!showcase) {
-                throw new BadRequestException('Showcase tidak ditemukan');
+                this.handleServerError('Showcase tidak ditemukan');
             }
 
             // Only return published showcases to the public
             if (showcase.status !== 'published') {
-                throw new BadRequestException('Showcase tidak ditemukan');
+                this.handleServerError('Showcase belum dipublish');
             }
 
             return showcase;
@@ -288,5 +288,13 @@ export class ShowcaseService {
         } catch (error) {
             throw new Error(`Gagal mendapatkan testimonial untuk project ${projectId}: ${error.message}`);
         }
+    }
+
+    handleServerError(message: string): never {
+        throw new InternalServerErrorException({
+            statusCode: 500,
+            message: message || 'Terjadi kesalahan pada server',
+            error: message || 'Internal Server Error'
+        });
     }
 }
