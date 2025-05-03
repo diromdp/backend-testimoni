@@ -6,11 +6,11 @@ import { Auth } from 'src/auth/decorators/auth.decorator';
 
 @ApiTags('api/current-subscription')
 @Controller('api/current-subscription')
-@Auth()
 export class CurrentSubscriptionController {
   constructor(private readonly currentSubscriptionService: CurrentSubscriptionService) {}
 
   @Get()
+  @Auth()
   @HttpCode(HttpStatus.OK)
   @ApiResponse({ status: HttpStatus.OK, description: 'Current subscription retrieved successfully' })
   async getCurrentSubscription( @UserId() userId: number) {
@@ -23,6 +23,7 @@ export class CurrentSubscriptionController {
   }
 
   @Put()
+  @Auth()
   @HttpCode(HttpStatus.OK)
   @ApiResponse({ status: HttpStatus.OK, description: 'Feature usage updated successfully' })
   async updateFeatureUsage(
@@ -32,6 +33,33 @@ export class CurrentSubscriptionController {
     try {
       const subscriptionOwn = await this.currentSubscriptionService.updateFeatureUsage(userId, featureUsage);
       return { status: 200, data: subscriptionOwn };
+    } catch (error) {
+      return { status: error.status || 500, message: error.message };
+    }
+  }
+
+  @Get('premium-status/:userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({ status: HttpStatus.OK, description: 'Premium status retrieved successfully' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
+  async checkPremiumStatus(@Param('userId') userId: number) {
+    try {
+      const status = await this.currentSubscriptionService.checkPremiumStatus(userId);
+      return { status: 200, data: status };
+    } catch (error) {
+      return { status: error.status || 500, message: error.message };
+    }
+  }
+
+  @Get('premium-service')
+  @Auth()
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({ status: HttpStatus.OK, description: 'Premium status retrieved successfully' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
+  async checkPremiumService(@UserId() userId: number) {
+    try {
+      const status = await this.currentSubscriptionService.checkPremiumStatus(userId);
+      return { status: 200, data: status };
     } catch (error) {
       return { status: error.status || 500, message: error.message };
     }

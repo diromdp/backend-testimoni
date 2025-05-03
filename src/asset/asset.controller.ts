@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AssetService } from './asset.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiConsumes, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { Auth } from '../auth/decorators/auth.decorator';
 @ApiTags('api/assets')

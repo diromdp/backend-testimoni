@@ -275,7 +275,7 @@ export class SubscriptionReminderService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>TESTINESIA</h1>
+            <h1>Syafak</h1>
           </div>
           <div class="content">
             <h2>Pengingat Langganan</h2>
@@ -285,7 +285,7 @@ export class SubscriptionReminderService {
               <p>Langganan <strong>${data.subscriptionName}</strong> Anda akan berakhir pada <strong>${formattedDate}</strong>.</p>
             </div>
             
-            <p>Untuk terus menikmati akses penuh ke fitur premium dan layanan Testinesia, mohon perbarui langganan Anda sebelum tanggal tersebut.</p>
+            <p>Untuk terus menikmati akses penuh ke fitur premium dan layanan Syafak, mohon perbarui langganan Anda sebelum tanggal tersebut.</p>
             
             <p>Jika langganan Anda tidak diperbarui, akun Anda akan dinonaktifkan dan Anda akan kehilangan akses ke fitur premium.</p>
             
@@ -296,7 +296,7 @@ export class SubscriptionReminderService {
             </div>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Testinesia. Semua hak dilindungi.</p>
+            <p>&copy; ${new Date().getFullYear()} Syafak. Semua hak dilindungi.</p>
             <p>Jika Anda memiliki pertanyaan, silakan hubungi tim dukungan kami di ${this.configService.get('MAIL_USER')}.</p>
           </div>
         </div>
@@ -308,7 +308,7 @@ export class SubscriptionReminderService {
       to,
       subject,
       html,
-      from: `"Testinesia" <${this.configService.get<string>('MAIL_USER')}>`,
+      from: `"Syafak" <${this.configService.get<string>('MAIL_USER')}>`,
     });
   }
   
@@ -382,7 +382,7 @@ export class SubscriptionReminderService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>TESTINESIA</h1>
+            <h1>Syafak</h1>
           </div>
           <div class="content">
             <h2>Langganan Anda Telah Berakhir</h2>
@@ -407,7 +407,7 @@ export class SubscriptionReminderService {
             </div>
           </div>
           <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Testinesia. Semua hak dilindungi.</p>
+            <p>&copy; ${new Date().getFullYear()} Syafak. Semua hak dilindungi.</p>
             <p>Jika Anda memiliki pertanyaan, silakan hubungi tim dukungan kami di ${this.configService.get('MAIL_USER')}.</p>
           </div>
         </div>
@@ -419,7 +419,7 @@ export class SubscriptionReminderService {
       to,
       subject,
       html,
-      from: `"Testinesia" <${this.configService.get<string>('MAIL_USER')}>`,
+      from: `"Syafak" <${this.configService.get<string>('MAIL_USER')}>`,
     });
   }
 } 

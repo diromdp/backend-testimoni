@@ -481,7 +481,7 @@ export class OrderSubscriptionService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>TESTINESIA</h1>
+              <h1>Syafak</h1>
             </div>
             <div class="content">
               <h2>Pembayaran Berhasil! 🎉</h2>
@@ -494,14 +494,14 @@ export class OrderSubscriptionService {
                 <p><strong>Status:</strong> <span style="color: #28a745;">Berhasil</span></p>
               </div>
               
-              <p>Langganan Anda sekarang aktif. Anda dapat mulai menggunakan semua fitur premium Testinesia.</p>
+              <p>Langganan Anda sekarang aktif. Anda dapat mulai menggunakan semua fitur premium Syafak.</p>
               
-              <p>Terima kasih atas kepercayaan Anda menggunakan layanan Testinesia!</p>
+              <p>Terima kasih atas kepercayaan Anda menggunakan layanan Syafak!</p>
               
               <a href="${this.configService.get('BASE_URL')}/dashboard" class="button">Akses Dashboard</a>
             </div>
             <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Testinesia. Semua hak dilindungi.</p>
+              <p>&copy; ${new Date().getFullYear()} Syafak. Semua hak dilindungi.</p>
               <p>Jika Anda memiliki pertanyaan, silakan hubungi tim dukungan kami di ${this.configService.get('MAIL_USER')}.</p>
             </div>
           </div>
@@ -586,7 +586,7 @@ export class OrderSubscriptionService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>TESTINESIA</h1>
+              <h1>Syafak</h1>
             </div>
             <div class="content">
               <h2>Pembayaran Gagal</h2>
@@ -614,7 +614,7 @@ export class OrderSubscriptionService {
               <a href="${this.configService.get('BASE_URL')}/subscription" class="button">Coba Lagi</a>
             </div>
             <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Testinesia. Semua hak dilindungi.</p>
+              <p>&copy; ${new Date().getFullYear()} Syafak. Semua hak dilindungi.</p>
               <p>Jika Anda memiliki pertanyaan, silakan hubungi tim dukungan kami di ${this.configService.get('MAIL_USER')}.</p>
             </div>
           </div>
@@ -699,7 +699,7 @@ export class OrderSubscriptionService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>TESTINESIA</h1>
+              <h1>Syafak</h1>
             </div>
             <div class="content">
               <h2>Pembayaran Tertunda</h2>
@@ -727,7 +727,7 @@ export class OrderSubscriptionService {
               <a href="${this.configService.get('BASE_URL')}/payment/check" class="button">Cek Status Pembayaran</a>
             </div>
             <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} Testinesia. Semua hak dilindungi.</p>
+              <p>&copy; ${new Date().getFullYear()} Syafak. Semua hak dilindungi.</p>
               <p>Jika Anda memiliki pertanyaan, silakan hubungi tim dukungan kami di ${this.configService.get('MAIL_USER')}.</p>
             </div>
           </div>
@@ -744,7 +744,7 @@ export class OrderSubscriptionService {
         to,
         subject,
         html,
-        from: `"Testinesia" <${this.configService.get<string>('MAIL_USER')}>`
+        from: `"Syafak" <${this.configService.get<string>('MAIL_USER')}>`
       });
     } catch (error) {
       console.error('Failed to send email:', error);

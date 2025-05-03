@@ -124,4 +124,16 @@ export class CurrentSubscriptionService {
 
 		return updatedSubscription;
 	}
+
+	async checkPremiumStatus(userId: number): Promise<{ isPremium: boolean }> {
+		try {
+			const subscription = await this.getCurrentSubscription(userId);
+			// Check if subscription type is not 'free' and is active
+			const isPremium = subscription.type !== 'free' && subscription.isActive;
+			return { isPremium };
+		} catch (error) {
+			// If there's no subscription or any error, user is not premium
+			return { isPremium: false };
+		}
+	}
 }
