@@ -12,12 +12,17 @@ import * as userSchema from '../user/schema';
         const pool = new Pool({
           connectionString: configService.getOrThrow('DATABASE_URL'),
         });
+        
+        // Execute a query to set timezone for all connections
+        pool.on('connect', (client) => {
+          client.query('SET timezone = "Asia/Jakarta"');
+        });
+        
         return drizzle(pool, {
           schema: {
             ...userSchema,
           },
         });
-
       },
       inject: [ConfigService],
     },

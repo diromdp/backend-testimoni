@@ -12,8 +12,8 @@ export const orderSubscriptions = pgTable('order_subscriptions', {
   transactionStatus: varchar('transaction_status', { length: 225 }).notNull().default('PENDING'),
   paymentBase: jsonb('payment_base').default({}),
   grossAmount: integer('gross_amount').notNull().default(0),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow(),
 });
 
 export const orderSubscriptionRelations = relations(orderSubscriptions, ({ one, many }) => ({

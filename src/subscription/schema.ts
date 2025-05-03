@@ -13,9 +13,9 @@ export const subscriptions = pgTable('subscriptions', {
     price: integer('price').notNull(),
     planType: varchar('plan_type', { length: 50 }).notNull(),
     type: varchar('type', { length: 50 }).notNull(),
-    createdAt: timestamp('created_at').defaultNow(),
-    updatedAt: timestamp('updated_at').defaultNow(),
-  });
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow(),
+    });
 
   export const subscriptionRelations = relations(subscriptions, ({ one, many }) => ({
     admin: one(admins, {

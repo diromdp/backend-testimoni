@@ -53,8 +53,8 @@ export const testimonials = pgTable('testimonials', {
   status: varchar('status', { length: 100 }),
   projectId: integer('project_id').references(() => projects.id, { onDelete: 'set null' }),
   formId: integer('form_id').references(() => forms.id, { onDelete: 'set null' }),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow(),
 });
 
 // Relations

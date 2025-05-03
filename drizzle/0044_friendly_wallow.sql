@@ -1,0 +1,2 @@
+ALTER TABLE "testimonials" ADD COLUMN "created_at" timestamp with time zone DEFAULT now();--> statement-breakpoint
+ALTER TABLE "testimonials" ADD COLUMN "updated_at" timestamp with time zone DEFAULT now();

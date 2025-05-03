@@ -13,8 +13,8 @@ export const users = pgTable('users', {
     isVerified: boolean('is_verified').default(false),
     password: text('password').notNull(),
     accessToken: text('access_token'),
-    createdAt: timestamp('created_at').defaultNow(),
-    updatedAt: timestamp('updated_at').defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow(),
 });
 
 export const usersRelations = relations(users, ({ many, one }) => ({

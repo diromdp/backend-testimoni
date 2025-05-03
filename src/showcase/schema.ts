@@ -17,8 +17,8 @@ export const showcase = pgTable('showcase', {
     content: jsonb('content').default({}),
     heroContent: jsonb('hero_content').default({}),
     navigation: jsonb('navigation').default({}),
-    createdAt: timestamp('created_at').defaultNow(),
-    updatedAt: timestamp('updated_at').defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow(),
     status: varchar('status', { length: 255 }).default('not-active'),
 });
 
