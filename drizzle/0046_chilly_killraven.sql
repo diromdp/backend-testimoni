@@ -1,0 +1,1 @@
+ALTER TABLE "showcase" ADD COLUMN "branding" jsonb DEFAULT '{}'::jsonb;

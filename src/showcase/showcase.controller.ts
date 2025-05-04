@@ -89,6 +89,27 @@ export class ShowcaseController {
         }
     }
 
+    @Put(':slug/status')
+    @Auth()
+    @ApiResponse({ status: HttpStatus.OK, description: 'Status showcase berhasil diperbarui' })
+    async updateStatus(@Param('slug') slug: string, @Body() updateStatusDto: { status: string }) {
+        try {
+            const result = await this.showcaseService.updateStatus(slug, updateStatusDto.status);
+
+            return {
+                status: 200,
+                message: result.message,
+                data: result.showcase
+            };
+        } catch (error) {
+            return {
+                status: 500,
+                message: error.message
+            }
+        }
+    }   
+    
+
     @Delete(':id')
     @Auth()
     @ApiResponse({ status: HttpStatus.OK, description: 'Showcase berhasil dihapus' })

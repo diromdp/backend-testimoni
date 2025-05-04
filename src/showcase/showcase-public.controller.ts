@@ -1,8 +1,8 @@
 import { Controller, Get, Param, NotFoundException, Query, ParseIntPipe } from '@nestjs/common';
 import { ShowcaseService } from './showcase.service';
 import { Public } from '../admin/decorators/public.decorator';
-import { PaginateQuery } from 'nestjs-paginate';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Paginate, PaginateQuery } from 'nestjs-paginate';
+import { ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('api/public/showcase')
 @Controller('api/public/showcase')
@@ -11,11 +11,14 @@ export class ShowcasePublicController {
 
   @Public()
   @Get('testimonials/:projectId')
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'type', required: false, type: String, description: 'Filter testimonials by type' })
   @ApiResponse({ status: 200, description: 'Testimonial berhasil didapatkan' })
   @ApiResponse({ status: 404, description: 'Testimonial tidak ditemukan' })
   async getApprovedTestimonials(
+    @Paginate() query: PaginateQuery,
     @Param('projectId', ParseIntPipe) projectId: number,
-    @Query() query: PaginateQuery
   ) {
     try {
       const result = await this.showcaseService.findApprovedTestimoniByProjectId(projectId, query);

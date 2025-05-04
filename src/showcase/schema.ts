@@ -14,6 +14,7 @@ export const showcase = pgTable('showcase', {
     primaryColor: text('primary_color').default(''),
     highlightColor: text('highlight_color').default(''),
     font: text('font').default(''),
+    branding: jsonb('branding').default({}),
     content: jsonb('content').default({}),
     heroContent: jsonb('hero_content').default({}),
     navigation: jsonb('navigation').default({}),

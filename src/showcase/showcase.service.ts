@@ -132,6 +132,21 @@ export class ShowcaseService {
             throw new Error(`Gagal memperbarui showcase: ${error.message}`);
         }
     }
+    async updateStatus(slug: string, status: string) {
+        try {
+            const [updatedShowcase] = await this.db
+                .update(schema.showcase)
+                .set({ status })
+                .where(eq(schema.showcase.slug, slug))
+                .returning();
+            return {
+                message: 'Status showcase berhasil diperbarui',
+                showcase: updatedShowcase
+            };
+        } catch (error) {
+            throw new Error(`Gagal memperbarui status showcase: ${error.message}`);
+        }
+    }
 
     async deleteById(userId: number, id: number) {
         try {

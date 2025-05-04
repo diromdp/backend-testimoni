@@ -323,6 +323,13 @@
       "when": 1746260215146,
       "tag": "0045_previous_sentinels",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1746350775868,
+      "tag": "0046_chilly_killraven",
+      "breakpoints": true
     }
   ]
 }
