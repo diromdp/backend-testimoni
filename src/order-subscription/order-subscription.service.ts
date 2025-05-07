@@ -567,7 +567,7 @@ export class OrderSubscriptionService {
             .button {
               display: inline-block;
               background-color: #ff7235;
-              color: white;
+              color: #fff !important;
               text-decoration: none;
               padding: 12px 25px;
               border-radius: 4px;

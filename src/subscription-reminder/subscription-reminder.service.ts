@@ -94,109 +94,109 @@ export class SubscriptionReminderService {
   }
   
   // Run at 1 AM every Sunday
-  @Cron('0 1 * * 0')
-  async deactivateExpiredSubscriptions() {
-    this.logger.log('Running expired subscription check (Sunday 1 AM)...');
+  // @Cron('0 1 * * 0')
+  // async deactivateExpiredSubscriptions() {
+  //   this.logger.log('Running expired subscription check (Sunday 1 AM)...');
     
-    try {
-      // Check if there are any premium subscriptions first
-      const premiumCount = await this.db
-        .select({ count: sql`count(*)` })
-        .from(currentSubscriptions)
-        .where(eq(currentSubscriptions.type, 'premium'))
-        .limit(1);
+  //   try {
+  //     // Check if there are any premium subscriptions first
+  //     const premiumCount = await this.db
+  //       .select({ count: sql`count(*)` })
+  //       .from(currentSubscriptions)
+  //       .where(eq(currentSubscriptions.type, 'premium'))
+  //       .limit(1);
       
-      // Exit early if no premium subscriptions exist
-      if (!premiumCount.length || premiumCount[0].count === 0) {
-        this.logger.log('No premium subscriptions found, skipping deactivation check.');
-        return;
-      }
+  //     // Exit early if no premium subscriptions exist
+  //     if (!premiumCount.length || premiumCount[0].count === 0) {
+  //       this.logger.log('No premium subscriptions found, skipping deactivation check.');
+  //       return;
+  //     }
       
-      const today = new Date();
-      // Set to Indonesia timezone (UTC+7)
-      today.setHours(today.getHours() + 7);
+  //     const today = new Date();
+  //     // Set to Indonesia timezone (UTC+7)
+  //     today.setHours(today.getHours() + 7);
       
-      // Format date for comparison (removing time part)
-      const todayStr = today.toISOString().split('T')[0];
+  //     // Format date for comparison (removing time part)
+  //     const todayStr = today.toISOString().split('T')[0];
       
-      // Define batch size for processing large datasets
-      const BATCH_SIZE = 100;
-      let offset = 0;
-      let hasMoreRecords = true;
+  //     // Define batch size for processing large datasets
+  //     const BATCH_SIZE = 100;
+  //     let offset = 0;
+  //     let hasMoreRecords = true;
       
-      while (hasMoreRecords) {
-        // Find expired premium subscriptions with pagination
-        const expiredSubscriptions = await this.db
-          .select({
-            subscription: currentSubscriptions,
-            user: {
-              id: users.id,
-              name: users.name,
-              email: users.email,
-            },
-          })
-          .from(currentSubscriptions)
-          .leftJoin(users, eq(currentSubscriptions.userId, users.id))
-          .where(
-            and(
-              eq(currentSubscriptions.isActive, true),
-              eq(currentSubscriptions.type, 'premium'), // Only process premium subscriptions
-              lte(currentSubscriptions.nextBillingDate, new Date(todayStr))
-            )
-          )
-          .limit(BATCH_SIZE)
-          .offset(offset);
+  //     while (hasMoreRecords) {
+  //       // Find expired premium subscriptions with pagination
+  //       const expiredSubscriptions = await this.db
+  //         .select({
+  //           subscription: currentSubscriptions,
+  //           user: {
+  //             id: users.id,
+  //             name: users.name,
+  //             email: users.email,
+  //           },
+  //         })
+  //         .from(currentSubscriptions)
+  //         .leftJoin(users, eq(currentSubscriptions.userId, users.id))
+  //         .where(
+  //           and(
+  //             eq(currentSubscriptions.isActive, true),
+  //             eq(currentSubscriptions.type, 'premium'), // Only process premium subscriptions
+  //             lte(currentSubscriptions.nextBillingDate, new Date(todayStr))
+  //           )
+  //         )
+  //         .limit(BATCH_SIZE)
+  //         .offset(offset);
         
-        if (expiredSubscriptions.length === 0) {
-          hasMoreRecords = false;
-          break;
-        }
+  //       if (expiredSubscriptions.length === 0) {
+  //         hasMoreRecords = false;
+  //         break;
+  //       }
         
-        this.logger.log(`Processing batch of ${expiredSubscriptions.length} expired subscriptions (offset: ${offset})`);
+  //       this.logger.log(`Processing batch of ${expiredSubscriptions.length} expired subscriptions (offset: ${offset})`);
         
-        // Process batch of expired subscriptions
-        for (const item of expiredSubscriptions) {
-          // Update subscription to inactive with specific featureUsage changes
-          await this.db
-            .update(currentSubscriptions)
-            .set({
-              isActive: false,
-              type: 'free',
-              updatedAt: new Date(),
-              // Only update remove_brand in featureUsage to true
-              featureUsage: sql`
-                jsonb_set(
-                  ${currentSubscriptions.featureUsage}::jsonb, 
-                  '{remove_brand}', 
-                  'false'::jsonb
-                )
-              `
-            })
-            .where(eq(currentSubscriptions.id, item.subscription.id));
+  //       // Process batch of expired subscriptions
+  //       for (const item of expiredSubscriptions) {
+  //         // Update subscription to inactive with specific featureUsage changes
+  //         await this.db
+  //           .update(currentSubscriptions)
+  //           .set({
+  //             isActive: false,
+  //             type: 'free',
+  //             updatedAt: new Date(),
+  //             // Only update remove_brand in featureUsage to true
+  //             featureUsage: sql`
+  //               jsonb_set(
+  //                 ${currentSubscriptions.featureUsage}::jsonb, 
+  //                 '{remove_brand}', 
+  //                 'false'::jsonb
+  //               )
+  //             `
+  //           })
+  //           .where(eq(currentSubscriptions.id, item.subscription.id));
           
-          // Send expiration notification if user exists
-          if (item.user && item.user.email && item.subscription.nameSubscription) {
-            await this.sendExpirationEmail(
-              item.user.email,
-              {
-                name: item.user.name || 'Pelanggan',
-                subscriptionName: item.subscription.nameSubscription,
-              }
-            );
+  //         // Send expiration notification if user exists
+  //         if (item.user && item.user.email && item.subscription.nameSubscription) {
+  //           await this.sendExpirationEmail(
+  //             item.user.email,
+  //             {
+  //               name: item.user.name || 'Pelanggan',
+  //               subscriptionName: item.subscription.nameSubscription,
+  //             }
+  //           );
             
-            this.logger.log(`Deactivated subscription and sent notification to user: ${item.user.email}`);
-          } else {
-            this.logger.log(`Deactivated subscription ID: ${item.subscription.id} (no user or email found)`);
-          }
-        }
+  //           this.logger.log(`Deactivated subscription and sent notification to user: ${item.user.email}`);
+  //         } else {
+  //           this.logger.log(`Deactivated subscription ID: ${item.subscription.id} (no user or email found)`);
+  //         }
+  //       }
         
-        // Move to next batch
-        offset += BATCH_SIZE;
-      }
-    } catch (error) {
-      this.logger.error(`Error deactivating expired subscriptions: ${error.message}`);
-    }
-  }
+  //       // Move to next batch
+  //       offset += BATCH_SIZE;
+  //     }
+  //   } catch (error) {
+  //     this.logger.error(`Error deactivating expired subscriptions: ${error.message}`);
+  //   }
+  // }
   
   // Email for reminding users to renew their subscription
   private async sendReminderEmail(to: string, data: {

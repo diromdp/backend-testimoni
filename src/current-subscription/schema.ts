@@ -12,12 +12,12 @@ export const currentSubscriptions = pgTable('current_subscriptions', {
     nameSubscription: varchar('name_subscription', { length: 255 }),
     featureUsage: jsonb('feature_usage').notNull(),
     featureLimit: jsonb('feature_limit').notNull(),
-    startDate: timestamp('start_date').notNull(),
-    endDate: timestamp('end_date').notNull(),
-    nextBillingDate: timestamp('next_billing_date').notNull(),  
+    startDate: timestamp('start_date', { withTimezone: true, mode: 'date' }).notNull(),
+    endDate: timestamp('end_date', { withTimezone: true, mode: 'date' }).notNull(),
+    nextBillingDate: timestamp('next_billing_date', { withTimezone: true, mode: 'date' }).notNull(),  
     isActive: boolean('is_active').default(true),
-    createdAt: timestamp('created_at').defaultNow(),
-    updatedAt: timestamp('updated_at').defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow(),
 });
 
 export const currentSubscriptionRelations = relations(currentSubscriptions, ({ one }) => ({

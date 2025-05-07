@@ -62,7 +62,7 @@ export const forms = pgTable('forms', {
 
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow(),
 });
 
 // Add relations if needed
