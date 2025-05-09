@@ -5,6 +5,7 @@ import { currentProject } from '../current-project/schema';
 import { forms } from '../form/schema';
 import { testimonials } from '../testimoni/schema';
 import { showcase } from '../showcase/schema';
+import { setUpProjectRelations } from '../wigdet/schema';
 
 export const projects = pgTable('projects', {
   id: serial('id').primaryKey(),
@@ -21,7 +22,6 @@ export const projectRelations = relations(projects, ({ one, many }) => ({
   user: one(users, {
     fields: [projects.userId],
     references: [users.id],
-
   }),
   currentProject: one(currentProject, {
     fields: [projects.id],
@@ -31,3 +31,6 @@ export const projectRelations = relations(projects, ({ one, many }) => ({
   testimonials: many(testimonials),
   showcase: many(showcase),
 }));
+
+// Set up widget relations after defining projects
+export const projectsWidgetsRelations = setUpProjectRelations(projects);

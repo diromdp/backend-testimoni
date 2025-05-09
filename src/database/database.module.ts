@@ -3,7 +3,8 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { DATABASE_CONNECTION } from './database-connection';
 import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
-import * as userSchema from '../user/schema';
+import { schema, setupRelations } from './db-schema';
+
 @Module({
   providers: [
     {
@@ -18,11 +19,12 @@ import * as userSchema from '../user/schema';
           client.query('SET timezone = "Asia/Jakarta"');
         });
         
-        return drizzle(pool, {
-          schema: {
-            ...userSchema,
-          },
-        });
+        const db = drizzle(pool, { schema });
+        
+        // Setup relations that couldn't be defined directly due to circular dependencies
+        setupRelations(db);
+        
+        return db;
       },
       inject: [ConfigService],
     },

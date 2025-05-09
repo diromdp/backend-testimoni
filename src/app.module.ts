@@ -17,6 +17,7 @@ import { TagModule } from './tag/tag.module';
 import { TestimoniModule } from './testimoni/testimoni.module';
 import { ShowcaseModule } from './showcase/showcase.module';
 import { SubscriptionReminderModule } from './subscription-reminder/subscription-reminder.module';
+import { WigdetModule } from './wigdet/wigdet.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { SubscriptionReminderModule } from './subscription-reminder/subscription
     TestimoniModule,
     ShowcaseModule,
     SubscriptionReminderModule,
+    WigdetModule,
   ],
   providers: [
     {
