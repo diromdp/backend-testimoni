@@ -249,7 +249,11 @@ export class ShowcaseService {
 
             return showcase;
         } catch (error) {
-            throw new Error(`Gagal menemukan showcase: ${error.message}`);
+            return {
+                statusCode: 404,
+                message: error.message,
+                error: error.message
+            }
         }
     }
 
@@ -308,8 +312,8 @@ export class ShowcaseService {
     handleServerError(message: string): never {
         throw new InternalServerErrorException({
             statusCode: 500,
-            message: message || 'Terjadi kesalahan pada server',
-            error: message || 'Internal Server Error'
+            message: message,
+            error: message
         });
     }
 }
