@@ -250,7 +250,7 @@ export class ShowcaseService {
             return showcase;
         } catch (error) {
             return {
-                statusCode: 404,
+                status: 404,
                 message: error.message,
                 error: error.message
             }
@@ -311,7 +311,7 @@ export class ShowcaseService {
 
     handleServerError(message: string): never {
         throw new InternalServerErrorException({
-            statusCode: 500,
+            status: 500,
             message: message,
             error: message
         });

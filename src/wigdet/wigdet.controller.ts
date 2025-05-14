@@ -6,8 +6,8 @@ import { Paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
 import { CreateWigdetDto } from './dto/create-wigdet.dto';
 import { UpdateWigdetDto } from './dto/update-wigdet.dto';
 
-@ApiTags('api/widget')
-@Controller('api/widget')
+@ApiTags('api/widgets')
+@Controller('api/widgets')
 @Auth()
 export class WigdetController {
   constructor(private readonly wigdetService: WigdetService) {}
@@ -110,40 +110,6 @@ export class WigdetController {
       return {
         status: 200,
         message: result.message
-      };
-    } catch (error) {
-      return { status: 500, message: error.message };
-    }
-  }
-
-  @Get('testimonials')
-  @HttpCode(HttpStatus.OK)
-  @ApiResponse({ status: HttpStatus.OK, description: 'Widgets retrieved by testimonial IDs successfully' })
-  @ApiQuery({ 
-    name: 'ids', 
-    description: 'Comma-separated list of testimonial IDs',
-    required: true,
-    type: String 
-  })
-  @ApiOperation({ summary: 'Find widgets by testimonial IDs (GET method)' })
-  async getByTestimonialIds(@Query('ids') ids: string) {
-    try {
-      // Parse and validate testimonial IDs from query string
-      if (!ids) {
-        throw new BadRequestException('Parameter IDs testimonial diperlukan');
-      }
-      
-      const testimoniIds = ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
-      
-      if (testimoniIds.length === 0) {
-        throw new BadRequestException('Daftar ID testimonial tidak valid');
-      }
-      
-      const result = await this.wigdetService.findByTestimonialIds(testimoniIds);
-      return {
-        status: 200,
-        message: result.message,
-        data: result.data
       };
     } catch (error) {
       return { status: 500, message: error.message };

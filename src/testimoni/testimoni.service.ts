@@ -440,5 +440,70 @@ export class TestimonialService {
         }
     }
 
-    
+    async findMultiple(ids: string) {
+        try {
+            // Handle different input formats and extract numeric IDs
+            let cleanInput = ids;
+            
+            // Remove curly braces if present
+            if (cleanInput.startsWith('{') && cleanInput.endsWith('}')) {
+                cleanInput = cleanInput.substring(1, cleanInput.length - 1);
+            }
+            
+            // Convert string to array of numbers
+            const testimonialIds: number[] = cleanInput.split(',')
+                .map(id => {
+                    const trimmed = id.trim();
+                    return parseInt(trimmed);
+                })
+                .filter(id => !isNaN(id) && id > 0);
+            
+            if (testimonialIds.length === 0) {
+                throw new BadRequestException('Daftar ID testimonial tidak valid');
+            }
+
+            const testimonials = await this.db
+                .select({
+                    id: schema.testimonials.id,
+                    profilePicturePath: schema.testimonials.profilePicturePath,
+                    name: schema.testimonials.name,
+                    email: schema.testimonials.email,
+                    company: schema.testimonials.company,
+                    position: schema.testimonials.position,
+                    website: schema.testimonials.website,
+                    testimonialText: schema.testimonials.testimonialText, 
+                    rating: schema.testimonials.rating,
+                    type: schema.testimonials.type,
+                    source: schema.testimonials.source,
+                    path: schema.testimonials.path
+                })
+                .from(schema.testimonials)
+                .where(inArray(schema.testimonials.id, testimonialIds));
+
+            if (testimonials.length === 0) {
+                return {
+                    message: 'Tidak ada testimonial yang ditemukan',
+                    testimonials: []
+                };
+            }
+
+            if (testimonials.length !== testimonialIds.length) {
+                const foundIds = testimonials.map(t => t.id);
+                const missingIds = testimonialIds.filter(id => !foundIds.includes(id));
+                
+                return {
+                    message: `Beberapa testimonial tidak ditemukan: ${missingIds.join(', ')}`,
+                    testimonials: testimonials,
+                    missingIds: missingIds
+                };
+            }
+
+            return {
+                message: 'Testimonial berhasil ditemukan',
+                testimonials: testimonials
+            };
+        } catch (error) {
+            throw new Error(`Gagal menemukan testimonial: ${error.message}`);
+        }
+    }
 }

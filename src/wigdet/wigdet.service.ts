@@ -176,36 +176,28 @@ export class WigdetService {
         }
     }
 
-    async findByTestimonialIds(testimoniIds: number[]) {
+    async findByTestimonialIds(testimonialIds: number[]) {
         try {
-            if (!testimoniIds || testimoniIds.length === 0) {
+            if (!testimonialIds || testimonialIds.length === 0) {
                 throw new BadRequestException('Daftar ID testimonial tidak boleh kosong');
             }
 
-            // Find widgets that contain any of the testimonial IDs in their showTestimonials array
+            // Since testimonialIds are stored in a jsonb column 'show_testimonials'
+            // We need to use a more complex query to find them
             const widgets = await this.db
                 .select()
                 .from(schema.widgets)
                 .where(
-                    sql`EXISTS (
-                        SELECT 1 FROM jsonb_array_elements_text(${schema.widgets.showTestimonials}) as tid
-                        WHERE CAST(tid AS INTEGER) IN (${sqlConstructor.join(testimoniIds)})
-                    )`
-                );
-
-            if (widgets.length === 0) {
-                return {
-                    message: 'Tidak ada widget yang terkait dengan testimonial yang dipilih',
-                    data: []
-                };
-            }
+                    sql`${schema.widgets.showTestimonials} ?| array[${testimonialIds.map(id => id.toString())}]`
+                )
+                .orderBy(desc(schema.widgets.createdAt));
 
             return {
-                message: `Berhasil menemukan ${widgets.length} widget yang terkait dengan testimonial`,
+                message: 'Widgets berhasil ditemukan',
                 data: widgets
             };
         } catch (error) {
-            throw new Error(`Gagal mencari widget berdasarkan ID testimonial: ${error.message}`);
+            throw new Error(`Gagal menemukan widgets berdasarkan ID testimonial: ${error.message}`);
         }
     }
 }
