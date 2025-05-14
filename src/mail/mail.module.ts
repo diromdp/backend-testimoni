@@ -21,7 +21,7 @@ import { ConfigModule } from '@nestjs/config';
         }
       },
       defaults: {
-        from: '"No Reply" <admin@syafak.com>',
+        from: '"No Reply" <admin@syafaq.com>',
       },
     }),
   ],
