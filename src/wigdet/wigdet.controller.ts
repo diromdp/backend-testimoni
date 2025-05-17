@@ -82,11 +82,13 @@ export class WigdetController {
   @ApiBody({ type: UpdateWigdetDto })
   async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateWidgetDto: UpdateWigdetDto,
-    @Query('projectId', ParseIntPipe) projectId: number
+    @Body() updateWidgetDto: UpdateWigdetDto
   ) {
     try {
-      const widget = await this.wigdetService.update(id, projectId, updateWidgetDto);
+      if (!updateWidgetDto.projectId) {
+        return { status: 400, message: 'projectId is required' };
+      }
+      const widget = await this.wigdetService.update(id, updateWidgetDto.projectId, updateWidgetDto);
       return {
         status: 200,
         message: 'Widget updated successfully',
@@ -101,12 +103,22 @@ export class WigdetController {
   @HttpCode(HttpStatus.OK)
   @ApiResponse({ status: HttpStatus.OK, description: 'Widget deleted successfully' })
   @ApiParam({ name: 'id', description: 'Widget ID' })
+  @ApiQuery({ name: 'projectId', description: 'Project ID', type: Number })
   async remove(
     @Param('id', ParseIntPipe) id: number,
-    @Query('projectId', ParseIntPipe) projectId: number
+    @Query('projectId') projectId: string
   ) {
     try {
-      const result = await this.wigdetService.remove(id, projectId);
+      if (!projectId) {
+        return { status: 400, message: 'projectId is required' };
+      }
+      
+      const projectIdNum = parseInt(projectId, 10);
+      if (isNaN(projectIdNum)) {
+        return { status: 400, message: 'projectId must be a valid number' };
+      }
+      
+      const result = await this.wigdetService.remove(id, projectIdNum);
       return {
         status: 200,
         message: result.message
