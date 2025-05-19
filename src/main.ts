@@ -10,6 +10,6 @@ async function bootstrap() {
       logger: ['error', 'warn', 'log', 'verbose', 'debug']
     }
   );
-  await app.listen(process.env.PORT ?? 3001);
+  await app.listen(5019);
 }
 bootstrap();
