@@ -5,12 +5,7 @@ async function bootstrap() {
   process.env.TZ = 'Asia/Jakarta';
 
   const corsOptions = {
-    origin: [
-      'https://syafaq-fe.vercel.app', // Domain frontend Anda
-      'https://syafaq.com',
-      'http://localhost:3000', // Contoh untuk pengembangan frontend lokal
-      'http://127.0.0.1:3000', // Contoh lain untuk pengembangan frontend lokal
-    ],
+    origin: '*', // Mengizinkan semua origin
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true, // Jika Anda menggunakan cookies atau header Authorization
     allowedHeaders: 'Content-Type, Accept, Authorization',
