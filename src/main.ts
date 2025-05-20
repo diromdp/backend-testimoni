@@ -8,9 +8,28 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'verbose', 'debug']
   });
   
-  // Konfigurasi CORS spesifik untuk Vercel
+  // Konfigurasi CORS spesifik untuk Vercel dan Cloudflare
+  const allowedOrigins = [
+    'https://syafaq-fe.vercel.app',
+    'https://syafaq.com',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    // Tambahkan semua domain frontend yang mungkin mengakses API
+  ];
+
   app.enableCors({
-    origin: ['https://syafaq-fe.vercel.app', 'https://syafaq.com', 'http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: function (origin, callback) {
+      // Izinkan request dari non-browser (seperti curl, Postman)
+      if (!origin) return callback(null, true);
+      
+      // Izinkan semua origin yang terdaftar
+      if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+        return callback(null, true);
+      }
+      
+      // Atau izinkan semua origin untuk debugging
+      return callback(null, true);
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     allowedHeaders: ['Content-Type', 'Accept', 'Authorization', 'Origin', 'X-Requested-With'],
@@ -20,12 +39,23 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
   
-  // Untuk Vercel serverless functions, header tambahan sering diperlukan
+  // Middleware untuk mengatasi CORS di lingkungan serverless Vercel
   app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    const origin = req.headers.origin;
+    
+    // Untuk request OPTIONS (preflight), kirim header yang diperlukan dan selesai
+    if (req.method === 'OPTIONS') {
+      res.header('Access-Control-Allow-Origin', origin || '*');
+      res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.header('Access-Control-Max-Age', '3600');
+      return res.status(204).end();
+    }
+    
+    // Untuk request non-OPTIONS, tambahkan header CORS saja
+    res.header('Access-Control-Allow-Origin', origin || '*');
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     next();
   });
   
