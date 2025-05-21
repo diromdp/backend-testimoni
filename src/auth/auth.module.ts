@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { DatabaseModule } from '../database/database.module';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { CurrentSubscriptionModule } from 'src/current-subscription/current-subscription.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '3d' },
     }),
     PassportModule,
+    CurrentSubscriptionModule,
   ],
   controllers: [AuthController],
   providers: [
