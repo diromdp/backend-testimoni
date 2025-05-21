@@ -12,6 +12,7 @@ export const users = pgTable('users', {
     verificationToken: text('verification_token'),
     isVerified: boolean('is_verified').default(false),
     password: text('password').notNull(),
+    path: text('path'),
     accessToken: text('access_token'),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow(),
