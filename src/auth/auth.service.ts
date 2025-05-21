@@ -161,6 +161,7 @@ export class AuthService {
           email: user.email,
           name: user.name,
           phone: user.phone,
+          path: user.path,
           planType: currentSubscription?.current_subscriptions?.type || null,
           isVerified: user.isVerified,
         },
