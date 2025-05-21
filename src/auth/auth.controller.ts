@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Request, Get, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Request, Get, UseGuards, Response } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/signin.dto';
 import { Auth } from './decorators/auth.decorator';
@@ -33,15 +33,15 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleAuth(@Request() req) {
     // Guard will handle the authentication
-    
+    return; 
   }
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Request() req) {
+  async googleAuthRedirect(@Request() req, @Response() res) {
     try {
       const result = await this.authService.googleLogin(req);
-      return { status: 200, ...result };
+      return res.redirect(`${process.env.APP_URL}/callback?access_token=${result.access_token}&name=${result.user.name}&email=${result.user.email}&phone=${result.user.phone}&planType=${result.user.planType}&isVerified=${result.user.isVerified}`);
     } catch (error) {
       return { status: 401, message: error.message };
     }
