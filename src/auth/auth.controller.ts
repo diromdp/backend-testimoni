@@ -41,7 +41,7 @@ export class AuthController {
   async googleAuthRedirect(@Request() req, @Response() res) {
     try {
       const result = await this.authService.googleLogin(req);
-      return res.redirect(`${process.env.APP_URL}/callback?access_token=${result.access_token}&name=${result.user.name}&email=${result.user.email}&phone=${result.user.phone}&planType=${result.user.planType}&isVerified=${result.user.isVerified}&path=${result.user.path}`);
+      return res.redirect(`${process.env.APP_URL}/callback?id=${result.user.id}&access_token=${result.access_token}&name=${result.user.name}&email=${result.user.email}&phone=${result.user.phone}&planType=${result.user.planType}&isVerified=${result.user.isVerified}&path=${result.user.path}`);
     } catch (error) {
       return { status: 401, message: error.message };
     }
